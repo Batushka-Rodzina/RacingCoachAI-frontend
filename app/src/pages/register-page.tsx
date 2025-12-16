@@ -37,14 +37,14 @@ const RegisterPage: React.FC = () => {
         
         {/* NAGŁÓWEK */}
         <h1 className="text-3xl font-orbitron font-bold text-cyan-400 mb-8 text-center">
-          Race Analyzer Pro
+          Bolide
         </h1>
 
         {/* Dodano backdrop-blur i podniesiono z-index */}
         <div className="bg-neutral-900/90 backdrop-blur-sm border border-white/10 p-8 md:p-10 rounded-xl shadow-2xl">
           
           <h2 className="text-2xl font-semibold mb-6 text-gray-200 text-center">
-            Utwórz nowe konto
+            Sing up
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -64,7 +64,7 @@ const RegisterPage: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                placeholder="wpisz swój email"
+                placeholder="Email"
               />
             </div>
 
@@ -74,7 +74,7 @@ const RegisterPage: React.FC = () => {
                 htmlFor="password" 
                 className="block text-sm font-medium text-gray-300 mb-2"
               >
-                Hasło
+                Password
               </label>
               <input
                 type="password"
@@ -83,7 +83,7 @@ const RegisterPage: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                placeholder="ustaw hasło"
+                placeholder="Password"
               />
             </div>
 
@@ -93,7 +93,7 @@ const RegisterPage: React.FC = () => {
                 htmlFor="confirm-password" 
                 className="block text-sm font-medium text-gray-300 mb-2"
               >
-                Potwierdź Hasło
+                Confirm password
               </label>
               <input
                 type="password"
@@ -102,7 +102,7 @@ const RegisterPage: React.FC = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                placeholder="potwierdź hasło"
+                placeholder="Confirm password"
               />
             </div>
 
@@ -116,18 +116,18 @@ const RegisterPage: React.FC = () => {
               type="submit"
               className="w-full px-4 py-3 rounded-lg bg-cyan-500 text-black font-bold text-base hover:bg-cyan-400 transition shadow-lg shadow-cyan-500/20"
             >
-              Zarejestruj się
+              Sign up
             </button>
           </form>
 
           {/* Link do Logowania */}
           <p className="mt-8 text-center text-sm text-gray-400">
-            Masz już konto?{' '}
+            You already have an account?{' '}
             <Link 
               to="/login"
               className="text-cyan-400 font-semibold hover:text-cyan-300 hover:underline transition"
             >
-              Zaloguj się
+              Log in
             </Link>
           </p>
           

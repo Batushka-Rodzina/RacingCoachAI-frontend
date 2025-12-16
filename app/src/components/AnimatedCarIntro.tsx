@@ -50,7 +50,7 @@ const AnimatedCarIntro: React.FC = () => {
         
         <video 
           ref={videoRef}
-          src="../../public/videos/porsche2.mp4" 
+          src="../../public/videos/porsche.mp4" 
           autoPlay 
           muted={isMuted} // Kontrolowane przez stan (domyślnie true)
           playsInline 

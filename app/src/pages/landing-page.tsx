@@ -128,7 +128,7 @@ const LandingPage: React.FC = () => {
               to="/login" 
               className="hover:text-cyan-400 transition"
             >
-              Logowanie
+              Log in
             </Link>
             <Link 
               to="/register" 

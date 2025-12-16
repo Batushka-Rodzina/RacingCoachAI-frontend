@@ -28,14 +28,14 @@ const LoginPage: React.FC = () => {
         
         {/* NAGŁÓWEK JAK NA STRONIE GŁÓWNEJ */}
         <h1 className="text-3xl font-orbitron font-bold text-cyan-400 mb-8 text-center">
-          Race Analyzer Pro
+          Bolide
         </h1>
 
         {/* Dodano backdrop-blur i podniesiono z-index */}
         <div className="bg-neutral-900/90 backdrop-blur-sm border border-white/10 p-8 md:p-10 rounded-xl shadow-2xl">
           
           <h2 className="text-2xl font-semibold mb-6 text-gray-200 text-center">
-            Zaloguj się do swojego konta
+            Log in
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -55,7 +55,7 @@ const LoginPage: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                placeholder="wpisz swój email"
+                placeholder="Enter your email"
               />
             </div>
 
@@ -65,7 +65,7 @@ const LoginPage: React.FC = () => {
                 htmlFor="password" 
                 className="block text-sm font-medium text-gray-300 mb-2"
               >
-                Hasło
+                Password
               </label>
               <input
                 type="password"
@@ -82,17 +82,17 @@ const LoginPage: React.FC = () => {
               type="submit"
               className="w-full px-4 py-3 rounded-lg bg-cyan-500 text-black font-bold text-base hover:bg-cyan-400 transition shadow-lg shadow-cyan-500/20"
             >
-              Zaloguj się
+              Log in
             </button>
           </form>
 
           <p className="mt-8 text-center text-sm text-gray-400">
-            Nie masz konta?{' '}
+            Sign up{' '}
             <Link 
               to="/register"
               className="text-cyan-400 font-semibold hover:text-cyan-300 hover:underline transition"
             >
-              Zarejestruj się tutaj
+              Sign up
             </Link>
           </p>
           
