@@ -1,9 +1,17 @@
+// tailwind.config.js
+
+const defaultTheme = require('tailwindcss/defaultTheme');
+
 module.exports = {
-	theme: {
-		extend: {
-			fontFamily: {
-				orbitron: ['Orbitron', 'sans-serif'],
-			},
-		},
-	},
-}
+
+    theme: {
+        extend: {
+            fontFamily: {
+                sans: ['Inter', ...defaultTheme.fontFamily.sans], 
+                
+                orbitron: ['Orbitron', 'sans-serif'],
+            },
+        },
+    },
+    // ...
+};

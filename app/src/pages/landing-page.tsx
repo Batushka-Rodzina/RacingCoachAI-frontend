@@ -1,237 +1,307 @@
-const LandingPage: React.FC = () => {
-	return (
-		<div className="bg-neutral-950 text-white font-sans">
-			<header className="sticky top-0 z-50 bg-neutral-950/80 backdrop-blur border-b border-white/10">
-				<div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-					<span className="font-orbitron text-xl font-bold text-cyan-400">
-						Race Analyzer Pro
-					</span>
+// src/pages/landing-page.tsx
 
-					<nav className="hidden md:flex gap-8 text-sm text-gray-300">
-						<a href="#" className="hover:text-white">
-							Dashboard
-						</a>
-						<a href="#" className="hover:text-white">
-							Profile
-						</a>
-						<a href="#" className="hover:text-white">
-							Setups
-						</a>
-						<a href="#" className="hover:text-white">
-							Community
-						</a>
-					</nav>
-				</div>
-			</header>
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion'; 
+import type { Variants } from 'framer-motion'; 
+// import AnimatedBackground from '../components/AnimatedBackground'; // USUNIĘTO
+import AnimatedCarIntro from '../components/AnimatedCarIntro'; // POZOSTAWIAMY SAMOCHÓD
 
-			<section className="relative overflow-hidden">
-				<img
-					src="/images/ferrari.png"
-					alt="Ferrari racing background"
-					loading="lazy"
-					className="absolute inset-0 w-full h-full object-cover"
-				/>
-
-				<div className="absolute inset-0 bg-linear-to-b from-cyan-500/20 via-black/40 to-black/80" />
-
-				<div className="relative max-w-7xl mx-auto px-6 py-32 text-center">
-					<h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
-						Race Analyzer <span className="text-cyan-400">Pro</span>
-					</h1>
-
-					<p className="mt-6 max-w-2xl mx-auto text-gray-300 text-lg">
-						The most powerful telemetry analysis platform built for iRacing sim
-						racers.
-					</p>
-
-					<a
-						href="#"
-						className="inline-block mt-10 px-10 py-4 rounded-xl bg-cyan-500 text-black font-semibold hover:bg-cyan-400 transition"
-					>
-						Start Analyzing for Free
-					</a>
-				</div>
-			</section>
-
-			<section className="py-24 border-t border-white/10">
-				<div className="max-w-7xl mx-auto px-6">
-					<h2 className="text-3xl font-bold mb-12 text-center">
-						✨ Core Features
-					</h2>
-
-					<div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-						{[
-							{
-								title: 'Deep Telemetry Analysis',
-								desc: 'Compare your laps with the ideal lap and identify exactly where time is lost.',
-								src: '/images/core-feature-1.png',
-							},
-							{
-								title: 'Advanced Charts & Visuals',
-								desc: 'Clear charts for speed, braking, throttle and steering input.',
-								src: '/images/core-feature-2.png',
-							},
-							{
-								title: 'Sector-Based Analysis',
-								desc: 'Split the track into sectors and discover optimal braking points.',
-								src: '/images/core-feature-3.png',
-							},
-						].map((f, i) => (
-							<div
-								key={i}
-								className="rounded-2xl bg-neutral-900 border border-white/10 p-6 hover:border-cyan-400/40 transition"
-							>
-								<h3 className="text-xl font-semibold mb-3">{f.title}</h3>
-								<p className="text-gray-400 mb-4">{f.desc}</p>
-								<img
-									src={f.src}
-									className="rounded-lg h-50 w-full"
-									alt="feature preview"
-								/>
-							</div>
-						))}
-					</div>
-				</div>
-			</section>
-
-			<section className="py-24 bg-neutral-900/40 border-t border-white/10">
-				<div className="max-w-7xl mx-auto px-6 grid gap-12 lg:grid-cols-2">
-					<div>
-						<h2 className="text-3xl font-bold mb-4">📊 Visual Advantage</h2>
-						<p className="text-gray-400 mb-6">
-							See your racing line, braking points and acceleration zones
-							directly on a 2D track map.
-						</p>
-						<img
-							src="/images/brake-points.png"
-							className="rounded-xl"
-							alt="track map"
-						/>
-					</div>
-
-					<div className="rounded-2xl bg-neutral-900 border border-white/10 p-8">
-						<h3 className="text-xl font-semibold mb-4">Tire Statistics</h3>
-						<p className="text-gray-400 mb-6">
-							Analyze tire temperatures and wear to optimize setup and driving
-							style.
-						</p>
-
-						<div className="space-y-4 text-sm">
-							<div>
-								<p className="text-gray-300">Front Left</p>
-								<div className="h-2 bg-neutral-800 rounded">
-									<div className="h-2 bg-red-500 rounded w-[80%]" />
-								</div>
-								<p className="text-gray-500">Temp: 98°C | Wear: 14%</p>
-							</div>
-
-							<div>
-								<p className="text-gray-300">Front Right</p>
-								<div className="h-2 bg-neutral-800 rounded">
-									<div className="h-2 bg-green-500 rounded w-[65%]" />
-								</div>
-								<p className="text-gray-500">Temp: 91°C | Wear: 8%</p>
-							</div>
-						</div>
-
-						<p className="mt-6 text-yellow-400 text-sm">
-							⚠ Recommendation: Front-left tire overheating. Adjust camber or
-							reduce pressure.
-						</p>
-					</div>
-				</div>
-			</section>
-
-			<section className="py-24 border-t border-white/10">
-				<div className="max-w-7xl mx-auto px-6">
-					<h2 className="text-3xl font-bold mb-12 text-center">
-						🔬 Racing Line Analysis
-					</h2>
-
-					<div className="grid gap-8 md:grid-cols-3">
-						{[
-							{
-								title: 'Optimal Braking Points',
-								desc: 'Late braking detected in Turn 5. Potential gain: 0.150s.',
-							},
-							{
-								title: 'Throttle Input',
-								desc: 'Too aggressive throttle in Turn 9 causing oversteer.',
-							},
-							{
-								title: 'Steering Efficiency',
-								desc: 'Excessive steering corrections in high-speed sections.',
-							},
-						].map((c, i) => (
-							<div
-								key={i}
-								className="rounded-xl bg-neutral-900 border border-white/10 p-6"
-							>
-								<h3 className="font-semibold mb-3">{c.title}</h3>
-								<p className="text-gray-400">{c.desc}</p>
-							</div>
-						))}
-					</div>
-				</div>
-			</section>
-
-			<section className="py-24 bg-neutral-900/40 border-t border-white/10">
-				<div className="max-w-5xl mx-auto px-6">
-					<h2 className="text-3xl font-bold mb-12 text-center">
-						🗣 What Fast Drivers Say
-					</h2>
-
-					<div className="grid gap-8 md:grid-cols-2">
-						<blockquote className="bg-neutral-900 border border-white/10 p-6 rounded-xl">
-							“My lap times improved by 0.5s instantly. Best telemetry tool I’ve
-							ever used.”
-							<footer className="mt-4 text-sm text-gray-400">— iRacerPL</footer>
-						</blockquote>
-
-						<blockquote className="bg-neutral-900 border border-white/10 p-6 rounded-xl">
-							“Clean UI, insane insights. Perfect for finding milliseconds.”
-							<footer className="mt-4 text-sm text-gray-400">
-								— SpeedyAnn
-							</footer>
-						</blockquote>
-					</div>
-				</div>
-			</section>
-
-			<section className="py-32 text-center border-t border-white/10">
-				<h2 className="text-4xl font-extrabold mb-10">
-					🚀 Start in 3 Simple Steps
-				</h2>
-
-				<div className="max-w-6xl mx-auto px-6 grid gap-8 md:grid-cols-3 mb-12">
-					{[
-						'Create a free account',
-						'Sync telemetry from iRacing',
-						'Analyze and improve instantly',
-					].map((s, i) => (
-						<div
-							key={i}
-							className="bg-neutral-900 border border-white/10 p-6 rounded-xl hover:border-cyan-400/40 transition"
-						>
-							<span className="text-cyan-400 text-2xl font-bold">{i + 1}</span>
-							<p className="mt-3 text-gray-400">{s}</p>
-						</div>
-					))}
-				</div>
-
-				<a
-					href="#"
-					className="inline-block px-14 py-5 rounded-2xl bg-cyan-500 text-black font-bold text-lg hover:bg-cyan-400 transition"
-				>
-					DOMINATE IRACING NOW
-				</a>
-			</section>
-
-			<footer className="py-8 border-t border-white/10 text-center text-gray-500 text-sm">
-				© 2025 Race Analyzer Pro. Powered by data. Built for speed.
-			</footer>
-		</div>
-	)
+// === INTERFEJSY DANYCH ===
+interface HowItWorksItem {
+    step: number;
+    title: string;
+    desc: string;
+    image: string;
+    direction: 'left' | 'right';
 }
 
-export default LandingPage
+interface FeatureItem {
+    title: string;
+    desc: string;
+}
+// =============================
+
+// Prawidłowa definicja łagodzenia 'easeOut' (Bézier curve)
+const EASE_OUT: [number, number, number, number] = [0, 0, 0.58, 1];
+
+// --- Warianty Animacji Framer Motion ---
+
+const fadeInUp: Variants = { 
+  initial: { y: 60, opacity: 0 },
+  animate: { y: 0, opacity: 1, transition: { duration: 0.6 } },
+};
+
+// Wariant dla tekstu wjeżdżającego z boku
+const slideInFromSide = (direction: 'left' | 'right'): Variants => ({
+  initial: { x: direction === 'left' ? -100 : 100, opacity: 0 },
+  whileInView: { 
+    x: 0, 
+    opacity: 1, 
+    transition: { 
+      duration: 0.7, 
+      ease: EASE_OUT
+    } 
+  },
+});
+
+// Wariant skalowania elementu przy wejściu
+const scaleUp: Variants = {
+  initial: { scale: 0.9, opacity: 0 },
+  whileInView: { scale: 1, opacity: 1, transition: { duration: 0.8 } },
+};
+
+const stagger: Variants = {
+  animate: { 
+    transition: { 
+      staggerChildren: 0.1 
+    } 
+  },
+};
+
+const LandingPage: React.FC = () => {
+  
+  // --- DANE DLA SEKCJI HOW IT WORKS ---
+  const howItWorksData: HowItWorksItem[] = [
+    {
+        step: 1,
+        title: 'Data Sync & Upload',
+        desc: 'Seamlessly integrate your iRacing telemetry files. Our platform handles the complex data processing, allowing you to focus purely on driving and analysis.',
+        image: '/images/core-feature-1.png',
+        direction: 'left',
+    },
+    {
+        step: 2,
+        title: 'Deep Analysis Engine',
+        desc: 'Our proprietary engine compares your driving against ideal benchmarks, highlighting micro-differences in braking points, throttle application, and steering angle.',
+        image: '/images/core-feature-2.png',
+        direction: 'right',
+    },
+    {
+        step: 3,
+        title: 'Actionable Recommendations',
+        desc: 'Receive immediate, easy-to-understand recommendations on where you can gain time, including setup tweaks and driving line adjustments.',
+        image: '/images/core-feature-3.png',
+        direction: 'left',
+    },
+  ];
+
+  // --- DANE DLA SEKCJI KEY INSIGHTS ---
+  const featureData: FeatureItem[] = [
+    {
+        title: 'Dynamic Lap Delta',
+        desc: 'See exactly where you gain or lose time against your target, sector by sector, turn by turn. This is the difference between fast and fastest.',
+    },
+    {
+        title: 'Optimal Inputs Mapping',
+        desc: 'Detailed charts for steering, throttle, and brake input overlays show where you are too aggressive or too timid compared to pro drivers.',
+    },
+    {
+        title: 'Live Setup Validation',
+        desc: 'Evaluate the effectiveness of your setup changes instantly, using tire temps, pressures, and suspension data after every run.',
+    },
+  ];
+
+  return (
+    // Zmienione na bg-neutral-950/bg-black, aby tło było jednolite i czarne po przejeździe samochodu.
+    <div className="bg-neutral-950 text-white overflow-x-hidden min-h-screen relative">
+      
+      {/* 🏎️ Animacja samochodu (WIDEO) - Z-index: 0 */}
+      <AnimatedCarIntro /> 
+      
+      {/* ⚙️ Animowane tło (Hyperlane Grid) - USUNIĘTO AnimatedBackground */}
+      
+      {/* 1. HEADER - Z-index: 50 */}
+      <motion.header 
+        className="sticky top-0 z-50 bg-neutral-950/80 backdrop-blur border-b border-white/10"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+          <Link to="/" className="font-orbitron text-xl font-bold text-cyan-400">
+            Bolide
+          </Link>
+
+          <nav className="flex gap-4 md:gap-8 text-sm text-gray-300 items-center">
+            <Link 
+              to="/login" 
+              className="hover:text-cyan-400 transition"
+            >
+              Logowanie
+            </Link>
+            <Link 
+              to="/register" 
+              className="px-4 py-2 rounded-lg bg-cyan-500 text-black font-semibold hover:bg-cyan-400 transition"
+            >
+              Start Free
+            </Link>
+          </nav>
+        </div>
+      </motion.header>
+
+      {/* 2. HERO SECTION - Z-index: 10 */}
+      <section className="relative overflow-hidden pt-32 pb-48 md:pt-48 md:pb-64 z-10">
+        
+        {/* Overlay, aby główna sekcja była ciemna, a animacje z tła widoczne, ale przytłumione 
+            Jako że nie ma AnimatedBackground, ten overlay po prostu zapewnia ciemne tło nad wideo 
+            dla lepszego kontrastu z tekstem.
+        */}
+        <div className="absolute inset-0" /> 
+
+        <motion.div 
+          className="relative max-w-4xl mx-auto px-6 text-center"
+          initial="initial"
+          animate="animate"
+          variants={stagger}
+        >
+          <motion.h1 
+            className="text-5xl md:text-7xl font-extrabold tracking-tight"
+            variants={fadeInUp}
+          >
+            Data-Driven Performance. <span className="text-cyan-400">Instant</span> Gains.
+          </motion.h1>
+
+          <motion.p 
+            className="mt-6 max-w-2xl mx-auto text-gray-300 text-xl"
+            variants={fadeInUp}
+          >
+            The ultimate platform for sim racers to transform raw telemetry into instant, actionable insights. Master every corner and every setup.
+          </motion.p>
+
+          <motion.div variants={fadeInUp}>
+            <Link
+              to="/register"
+              className="inline-block mt-12 px-10 py-4 rounded-xl bg-cyan-500 text-black font-semibold text-lg hover:bg-cyan-400 transition shadow-lg shadow-cyan-500/20"
+            >
+              Start Your Free Trial
+            </Link>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* 3. HOW IT WORKS */}
+      <section className="py-24 border-t border-white/10 z-10 relative">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.h2 
+            className="text-4xl font-bold mb-16 text-center"
+            initial="initial"
+            whileInView="whileInView"
+            variants={slideInFromSide('left')}
+            viewport={{ once: true, amount: 0.3 }}
+          >
+            How it Works
+          </motion.h2>
+
+           <div className="space-y-20">
+            {howItWorksData.map((item) => (
+              <motion.div
+                key={item.step}
+                className={`grid md:grid-cols-2 gap-12 items-center ${item.direction === 'right' ? 'md:grid-flow-col-reverse' : ''}`}
+                initial="initial"
+                whileInView="whileInView"
+                viewport={{ once: true, amount: 0.3 }}
+              >
+                <motion.div 
+                    variants={slideInFromSide(item.direction)}
+                    initial="initial"
+                    whileInView="whileInView"
+                >
+                  <span className="text-cyan-400 text-5xl font-extrabold block mb-4 opacity-50">
+                    {item.step}
+                  </span>
+                  <h3 className="text-3xl font-bold mb-4">{item.title}</h3>
+                  <p className="text-gray-400 text-lg">{item.desc}</p>
+                </motion.div>
+                
+                <motion.div 
+                    variants={scaleUp}
+                    initial="initial"
+                    whileInView="whileInView"
+                    viewport={{ once: true, amount: 0.5 }}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="rounded-xl border border-white/10 shadow-lg"
+                  />
+                </motion.div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. KEY INSIGHTS */}
+      <section className="py-24 border-t border-white/10 z-10 relative">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.h2 
+            className="text-3xl font-bold mb-16 text-center"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ 
+              opacity: 1, 
+              y: 0, 
+              transition: { 
+                duration: 0.6, 
+                ease: EASE_OUT
+              } 
+            }}
+            viewport={{ once: true, amount: 0.5 }}
+          >
+            ✨ The Competitive Advantage
+          </motion.h2>
+
+          <motion.div 
+            className="grid gap-8 md:grid-cols-3"
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={stagger}
+          >
+            {featureData.map((feature, i) => ( 
+              <motion.div
+                key={i}
+                className="rounded-xl bg-neutral-900 border border-white/10 p-6 hover:border-cyan-400/40 transition flex flex-col h-full"
+                variants={fadeInUp}
+              >
+                <h3 className="text-xl font-semibold mb-3 text-cyan-400">{feature.title}</h3>
+                <p className="text-gray-400">{feature.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 5. CTA BOTTOM */}
+      <section className="py-24 border-t border-white/10 text-center z-10 relative">
+        <motion.div 
+          className="max-w-4xl mx-auto px-6"
+          initial={{ opacity: 0, scale: 0.8 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.7 }}
+        >
+            <h2 className="text-4xl font-extrabold mb-6">
+              Ready to Shave Off Seconds?
+            </h2>
+            <p className="text-lg text-gray-400 mb-10">
+              Join thousands of sim racers who use Bolide to stop guessing and start dominating.
+            </p>
+            <Link
+                to="/register"
+                className="inline-block px-14 py-5 rounded-2xl bg-cyan-500 text-black font-bold text-lg hover:bg-cyan-400 transition shadow-xl shadow-cyan-500/30"
+            >
+                DOMINATE IRACING NOW
+            </Link>
+        </motion.div>
+      </section>
+
+      {/* 6. FOOTER */}
+      <footer className="py-8 border-t border-white/10 text-center text-gray-500 text-sm z-10 relative">
+        © 2025 Bolide. Built for speed.
+      </footer>
+    </div>
+  );
+};
+
+export default LandingPage;
