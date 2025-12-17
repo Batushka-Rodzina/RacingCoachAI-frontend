@@ -10,6 +10,9 @@ const AnimatedCarIntro: React.FC = () => {
   // STAŁA GŁOŚNOŚĆ PO WŁĄCZENIU (0.2 = 20% głośności)
   const DEFAULT_VOLUME = 0.2; 
 
+  // Bezpośredni link do Twojego pliku na Google Drive
+  const videoSource = "https://res.cloudinary.com/dcn0fsdzj/video/upload/porsche_cmhlns.mp4";
+
   // Funkcja przełączająca wyciszenie w stanie i na elemencie DOM
   const handleToggleMute = () => {
     if (videoRef.current) {
@@ -20,19 +23,17 @@ const AnimatedCarIntro: React.FC = () => {
       if (newState === false) {
           // Jeśli włączamy dźwięk, ustawiamy go na domyślnie niską wartość
           videoRef.current.volume = DEFAULT_VOLUME;
-          // Restartujemy wideo, jeśli się skończyło
+          // Restartujemy wideo, jeśli się skończyło i nie ma loopa
           if (videoRef.current.ended) {
               videoRef.current.play();
           }
-      } else {
-          // Jeśli wyciszamy, nie musimy zmieniać volume, tylko ustawić muted=true
       }
     }
   };
   
   useEffect(() => {
     if (videoRef.current) {
-      // Upewniamy się, że wideo startuje wyciszone, aby autoPlay zadziałało
+      // Upewniamy się, że wideo startuje wyciszone, aby autoPlay zadziałało w przeglądarkach
       videoRef.current.muted = true;
     }
   }, []);
@@ -45,23 +46,26 @@ const AnimatedCarIntro: React.FC = () => {
         onToggle={handleToggleMute} 
       />
       
-      {/* 2. ELEMENT WIDEO */}
+      {/* 2. ELEMENT WIDEO - TŁO */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        
         <video 
           ref={videoRef}
-          src="../../public/videos/porsche.mp4" 
+          src={videoSource} 
           autoPlay 
-          muted={isMuted} // Kontrolowane przez stan (domyślnie true)
+          loop // Dodano loop, aby film grał w pętli
+          muted={isMuted} 
           playsInline 
-          
           className="w-full h-full object-cover" 
           style={{
-            filter: 'brightness(0.8) contrast(1.1) opacity(0.8)',
+            // Filtr dla lepszego klimatu "Race Dashboard" i czytelności formularzy
+            filter: 'brightness(0.6) contrast(1.1) opacity(0.8)',
           }}
         >
           Twoja przeglądarka nie obsługuje tagu wideo.
         </video>
+        
+        {/* Delikatny gradient na górze wideo, żeby napisy były jeszcze bardziej czytelne */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
       </div>
     </>
   );

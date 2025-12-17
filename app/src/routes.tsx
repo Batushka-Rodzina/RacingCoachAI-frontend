@@ -4,6 +4,7 @@ import type { RouteObject } from 'react-router-dom'
 import LandingPage from './pages/landing-page' 
 import LoginPage from './pages/login-page' 
 import RegisterPage from './pages/register-page'
+import DashboardPage from './pages/dashboard-page';
 
 export const routes: RouteObject[] = [
   { 
@@ -17,5 +18,9 @@ export const routes: RouteObject[] = [
   { 
     path: '/register', 
     element: <RegisterPage /> 
+  },
+  {
+    path: '/dashboard', // Dodajemy trasę dashboard
+    element: <DashboardPage />,
   },
 ]
