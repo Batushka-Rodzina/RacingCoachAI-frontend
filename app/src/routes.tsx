@@ -1,26 +1,30 @@
-// src/routes.tsx
-
-import type { RouteObject } from 'react-router-dom'
-import LandingPage from './pages/landing-page' 
-import LoginPage from './pages/login-page' 
-import RegisterPage from './pages/register-page'
+// src/routes.ts
+import LoginPage from './pages/login-page';
+import RegisterPage from './pages/register-page';
+import LandingPage from './pages/landing-page';
 import DashboardPage from './pages/dashboard-page';
+import TelemetryPage from './pages/telemetry-page'; // Import nowej strony
 
-export const routes: RouteObject[] = [
-  { 
-    path: '/', 
-    element: <LandingPage /> 
-  },
-  { 
-    path: '/login', 
-    element: <LoginPage /> 
-  },
-  { 
-    path: '/register', 
-    element: <RegisterPage /> 
+export const routes = [
+  {
+    path: '/',
+    element: <LandingPage />,
   },
   {
-    path: '/dashboard', // Dodajemy trasę dashboard
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />,
+  },
+  {
+    path: '/dashboard',
     element: <DashboardPage />,
   },
-]
+  // Nowa trasa:
+  {
+    path: '/telemetry',
+    element: <TelemetryPage />,
+  },
+];
