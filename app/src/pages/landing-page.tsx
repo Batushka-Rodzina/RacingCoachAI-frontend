@@ -4,8 +4,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-// import AnimatedBackground from '../components/AnimatedBackground'; // USUNIĘTO
-import AnimatedCarIntro from '../components/AnimatedCarIntro' // POZOSTAWIAMY SAMOCHÓD
+import AnimatedCarIntro from '../components/AnimatedCarIntro'
 
 // === INTERFEJSY DANYCH ===
 interface HowItWorksItem {
@@ -102,12 +101,9 @@ const LandingPage: React.FC = () => {
 	]
 
 	return (
-		// Zmienione na bg-neutral-950/bg-black, aby tło było jednolite i czarne po przejeździe samochodu.
 		<div className="bg-neutral-950 text-white overflow-x-hidden min-h-screen relative">
 			{/* 🏎️ Animacja samochodu (WIDEO) - Z-index: 0 */}
 			<AnimatedCarIntro />
-
-			{/* ⚙️ Animowane tło (Hyperlane Grid) - USUNIĘTO AnimatedBackground */}
 
 			{/* 1. HEADER - Z-index: 50 */}
 			<motion.header
@@ -119,24 +115,37 @@ const LandingPage: React.FC = () => {
 				<div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
 					<Link
 						to="/"
-						className="font-orbitron text-xl font-bold text-cyan-400"
+						className="font-orbitron text-xl font-bold"
+						style={{ color: '#bffa76' }}
 					>
 						Bolide
 					</Link>
 
 					<nav className="flex gap-4 md:gap-8 text-sm text-gray-300 items-center">
-						<Link to="/login" className="hover:text-cyan-400 transition">
+						<Link 
+							to="/login" 
+							className="transition"
+							style={{ color: 'rgb(209 213 219)' }}
+							onMouseEnter={(e) => e.currentTarget.style.color = '#bffa76'}
+							onMouseLeave={(e) => e.currentTarget.style.color = 'rgb(209 213 219)'}
+						>
 							Log in
 						</Link>
 						<Link
 							to="/register"
-							className="px-4 py-2 rounded-lg bg-cyan-500 text-black font-semibold hover:bg-cyan-400 transition"
+							className="px-4 py-2 rounded-lg text-black font-semibold transition"
+							style={{ backgroundColor: '#bffa76' }}
+							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#aae965'}
+							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#bffa76'}
 						>
 							Start Free
 						</Link>
 						<Link
 							to="/dashboard"
-							className="px-8 py-4 bg-cyan-500 text-black font-bold rounded-full hover:bg-cyan-400 transition"
+							className="px-8 py-4 text-black font-bold rounded-full transition"
+							style={{ backgroundColor: '#bffa76' }}
+							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#aae965'}
+							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#bffa76'}
 						>
 							Go to Dashboard
 						</Link>
@@ -146,10 +155,6 @@ const LandingPage: React.FC = () => {
 
 			{/* 2. HERO SECTION - Z-index: 10 */}
 			<section className="relative overflow-hidden pt-32 pb-48 md:pt-48 md:pb-64 z-10">
-				{/* Overlay, aby główna sekcja była ciemna, a animacje z tła widoczne, ale przytłumione 
-            Jako że nie ma AnimatedBackground, ten overlay po prostu zapewnia ciemne tło nad wideo 
-            dla lepszego kontrastu z tekstem.
-        */}
 				<div className="absolute inset-0" />
 
 				<motion.div
@@ -163,7 +168,7 @@ const LandingPage: React.FC = () => {
 						variants={fadeInUp}
 					>
 						Data-Driven Performance.{' '}
-						<span className="text-cyan-400">Instant</span> Gains.
+						<span style={{ color: '#bffa76' }}>Instant</span> Gains.
 					</motion.h1>
 
 					<motion.p
@@ -177,7 +182,19 @@ const LandingPage: React.FC = () => {
 					<motion.div variants={fadeInUp}>
 						<Link
 							to="/register"
-							className="inline-block mt-12 px-10 py-4 rounded-xl bg-cyan-500 text-black font-semibold text-lg hover:bg-cyan-400 transition shadow-lg shadow-cyan-500/20"
+							className="inline-block mt-12 px-10 py-4 rounded-xl text-black font-semibold text-lg transition shadow-lg"
+							style={{ 
+								backgroundColor: '#bffa76',
+								boxShadow: '0 10px 40px rgba(191, 250, 118, 0.2)'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.backgroundColor = '#aae965'
+								e.currentTarget.style.boxShadow = '0 10px 40px rgba(170, 233, 101, 0.3)'
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.backgroundColor = '#bffa76'
+								e.currentTarget.style.boxShadow = '0 10px 40px rgba(191, 250, 118, 0.2)'
+							}}
 						>
 							Start Your Free Trial
 						</Link>
@@ -214,7 +231,10 @@ const LandingPage: React.FC = () => {
 									initial="initial"
 									whileInView="whileInView"
 								>
-									<span className="text-cyan-400 text-5xl font-extrabold block mb-4 opacity-50">
+									<span 
+										className="text-5xl font-extrabold block mb-4 opacity-50"
+										style={{ color: '#bffa76' }}
+									>
 										{item.step}
 									</span>
 									<h3 className="text-3xl font-bold mb-4">{item.title}</h3>
@@ -255,7 +275,7 @@ const LandingPage: React.FC = () => {
 						}}
 						viewport={{ once: true, amount: 0.5 }}
 					>
-						✨ The Competitive Advantage
+						The Competitive Advantage
 					</motion.h2>
 
 					<motion.div
@@ -268,10 +288,18 @@ const LandingPage: React.FC = () => {
 						{featureData.map((feature, i) => (
 							<motion.div
 								key={i}
-								className="rounded-xl bg-neutral-900 border border-white/10 p-6 hover:border-cyan-400/40 transition flex flex-col h-full"
+								className="rounded-xl bg-neutral-900 p-6 transition flex flex-col h-full"
 								variants={fadeInUp}
+								style={{
+									border: '1px solid rgba(255, 255, 255, 0.1)'
+								}}
+								onMouseEnter={(e) => e.currentTarget.style.border = '1px solid rgba(191, 250, 118, 0.4)'}
+								onMouseLeave={(e) => e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.1)'}
 							>
-								<h3 className="text-xl font-semibold mb-3 text-cyan-400">
+								<h3 
+									className="text-xl font-semibold mb-3"
+									style={{ color: '#bffa76' }}
+								>
 									{feature.title}
 								</h3>
 								<p className="text-gray-400">{feature.desc}</p>
@@ -299,7 +327,19 @@ const LandingPage: React.FC = () => {
 					</p>
 					<Link
 						to="/register"
-						className="inline-block px-14 py-5 rounded-2xl bg-cyan-500 text-black font-bold text-lg hover:bg-cyan-400 transition shadow-xl shadow-cyan-500/30"
+						className="inline-block px-14 py-5 rounded-2xl text-black font-bold text-lg transition shadow-xl"
+						style={{ 
+							backgroundColor: '#bffa76',
+							boxShadow: '0 25px 50px rgba(191, 250, 118, 0.3)'
+						}}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.backgroundColor = '#aae965'
+							e.currentTarget.style.boxShadow = '0 25px 50px rgba(170, 233, 101, 0.4)'
+						}}
+						onMouseLeave={(e) => {
+							e.currentTarget.style.backgroundColor = '#bffa76'
+							e.currentTarget.style.boxShadow = '0 25px 50px rgba(191, 250, 118, 0.3)'
+						}}
 					>
 						DOMINATE IRACING NOW
 					</Link>

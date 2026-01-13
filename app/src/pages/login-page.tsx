@@ -19,9 +19,19 @@ const LoginPage: React.FC = () => {
 
 			<div className="w-full max-w-md relative z-20">
 				<h1 className="text-3xl font-orbitron font-bold mb-8 text-center">
-					<Link to="/" className="relative inline-block text-cyan-400 group">
+					<Link 
+						to="/" 
+						className="relative inline-block group"
+						style={{ color: '#bffa76' }}
+					>
 						<span className="tracking-widest uppercase">Bolide</span>
-						<span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full shadow-[0_0_8px_#22d3ee]"></span>
+						<span 
+							className="absolute -bottom-1 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full"
+							style={{ 
+								backgroundColor: '#bffa76',
+								boxShadow: '0 0 8px #bffa76'
+							}}
+						></span>
 					</Link>
 				</h1>
 
@@ -44,7 +54,19 @@ const LoginPage: React.FC = () => {
 								value={username}
 								onChange={(e) => setUsername(e.target.value)}
 								required
-								className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition"
+								className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none transition"
+								style={{
+									'--focus-ring-color': '#bffa76',
+									'--focus-border-color': '#bffa76'
+								} as React.CSSProperties}
+								onFocus={(e) => {
+									e.currentTarget.style.borderColor = '#bffa76'
+									e.currentTarget.style.boxShadow = '0 0 0 1px #bffa76'
+								}}
+								onBlur={(e) => {
+									e.currentTarget.style.borderColor = 'rgb(64 64 64)'
+									e.currentTarget.style.boxShadow = 'none'
+								}}
 								placeholder="Enter your username"
 							/>
 						</div>
@@ -58,18 +80,38 @@ const LoginPage: React.FC = () => {
 							<input
 								type="password"
 								id="password"
-								name="password" // 'name' zostaje w input, usuwamy z label
+								name="password"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								required
-								className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition"
+								className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none transition"
+								onFocus={(e) => {
+									e.currentTarget.style.borderColor = '#bffa76'
+									e.currentTarget.style.boxShadow = '0 0 0 1px #bffa76'
+								}}
+								onBlur={(e) => {
+									e.currentTarget.style.borderColor = 'rgb(64 64 64)'
+									e.currentTarget.style.boxShadow = 'none'
+								}}
 								placeholder="••••••••"
 							/>
 						</div>
 
 						<button
 							type="submit"
-							className="w-full px-4 py-3 rounded-lg bg-cyan-500 text-black font-bold text-base hover:bg-cyan-400 transition shadow-lg shadow-cyan-500/20"
+							className="w-full px-4 py-3 rounded-lg text-black font-bold text-base transition shadow-lg"
+							style={{ 
+								backgroundColor: '#bffa76',
+								boxShadow: '0 10px 15px rgba(191, 250, 118, 0.2)'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.backgroundColor = '#aae965'
+								e.currentTarget.style.boxShadow = '0 10px 15px rgba(170, 233, 101, 0.3)'
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.backgroundColor = '#bffa76'
+								e.currentTarget.style.boxShadow = '0 10px 15px rgba(191, 250, 118, 0.2)'
+							}}
 						>
 							Login
 						</button>
@@ -79,7 +121,16 @@ const LoginPage: React.FC = () => {
 						Don't have an account?{' '}
 						<Link
 							to="/register"
-							className="text-cyan-400 font-semibold hover:text-cyan-300 hover:underline transition"
+							className="font-semibold transition"
+							style={{ color: '#bffa76' }}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.color = '#aae965'
+								e.currentTarget.style.textDecoration = 'underline'
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.color = '#bffa76'
+								e.currentTarget.style.textDecoration = 'none'
+							}}
 						>
 							Create an account
 						</Link>

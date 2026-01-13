@@ -145,12 +145,12 @@ const TelemetryPage: React.FC = () => {
 
 	return (
 		<div className="flex min-h-screen bg-black text-white font-sans overflow-hidden">
-			<Sidebar />
+			<Sidebar activeTab="telemetry" />
 
 			<main className="flex-1 flex flex-col h-screen overflow-hidden">
 				<header className="flex justify-between items-center p-4 border-b border-white/10 bg-neutral-900">
-					<h1 className="text-xl font-orbitron font-bold text-cyan-400 uppercase tracking-wider">
-						Telemetry Analysis{' '}
+					<h1 className="text-xl font-orbitron font-bold uppercase tracking-wider">
+						<span style={{ color: '#bffa76' }}>Telemetry Analysis</span>{' '}
 						<span className="text-gray-500 text-sm ml-2">[Beta View]</span>
 					</h1>
 					<div className="flex flex-col items-end">
@@ -177,7 +177,7 @@ const TelemetryPage: React.FC = () => {
 						<TelemetryChannelRow
 							title="Speed (km/h)"
 							dataKey="speed"
-							color="#22d3ee"
+							color="#bffa76"
 							data={lapData}
 							refData={bestLapData}
 							domain={[0, 350]}
@@ -248,7 +248,10 @@ const TelemetryPage: React.FC = () => {
 								<span className="text-gray-500 text-[10px] uppercase mb-1">
 									Gear
 								</span>
-								<span className="text-7xl font-black text-cyan-400 italic leading-none">
+								<span 
+									className="text-7xl font-black italic leading-none"
+									style={{ color: '#bffa76' }}
+								>
 									{currentPoint.gear}
 								</span>
 							</div>
@@ -318,7 +321,10 @@ const TelemetryPage: React.FC = () => {
 						<div className="p-4 bg-black/40 border border-white/10 rounded-xl text-[11px] font-mono space-y-2">
 							<div className="flex justify-between text-gray-400">
 								<span>Time:</span>{' '}
-								<span className="text-cyan-400 font-bold">
+								<span 
+									className="font-bold"
+									style={{ color: '#bffa76' }}
+								>
 									{currentPoint.time}s
 								</span>
 							</div>

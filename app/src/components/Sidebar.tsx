@@ -2,16 +2,31 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  activeTab?: 'dashboard' | 'telemetry';
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ activeTab = 'dashboard' }) => {
   return (
     <aside className="w-64 bg-neutral-950 border-r border-white/10 p-6 flex flex-col">
-      <div className="mb-10 text-2xl font-orbitron font-bold text-cyan-400 tracking-widest">
+      <div 
+        className="mb-10 text-2xl font-orbitron font-bold tracking-widest"
+        style={{ color: '#bffa76' }}
+      >
         BOLIDE
       </div>
       
       <nav className="flex-1 space-y-2">
-        <SidebarItem label="Overview" to="/dashboard" active />
-        <SidebarItem label="Telemetry" to="/telemetry" />
+        <SidebarItem 
+          label="Overview" 
+          to="/dashboard" 
+          active={activeTab === 'dashboard'} 
+        />
+        <SidebarItem 
+          label="Telemetry" 
+          to="/telemetry" 
+          active={activeTab === 'telemetry'} 
+        />
       </nav>
 
       <div className="mt-auto pt-6 border-t border-white/10">
@@ -25,9 +40,12 @@ const Sidebar: React.FC = () => {
 
 const SidebarItem = ({ label, to, active = false }: { label: string, to: string, active?: boolean }) => (
   <Link to={to} className="block">
-    <div className={`px-4 py-3 rounded-lg cursor-pointer transition-all ${
-      active ? 'bg-cyan-500 text-black font-bold' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-    }`}>
+    <div 
+      className={`px-4 py-3 rounded-lg cursor-pointer transition-all ${
+        active ? 'text-black font-bold' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+      }`}
+      style={active ? { backgroundColor: '#bffa76' } : {}}
+    >
       {label}
     </div>
   </Link>

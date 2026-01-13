@@ -7,17 +7,27 @@ import SessionTable from '../components/SessionTable';
 const DashboardPage: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-black text-white font-sans overflow-x-hidden">
-      <Sidebar />
+      <Sidebar activeTab="dashboard" />
 
       <main className="flex-1 p-8 overflow-y-auto custom-scrollbar">
         {/* --- PROFILE HERO SECTION --- */}
         <section className="relative bg-neutral-900/40 border border-white/10 rounded-2xl p-8 mb-10 overflow-hidden">
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-cyan-500/10 to-transparent opacity-50" />
+          <div 
+            className="absolute top-0 right-0 w-1/2 h-full opacity-50" 
+            style={{ 
+              background: 'linear-gradient(to left, rgba(191, 250, 118, 0.1), transparent)' 
+            }}
+          />
           
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
             {/* Avatar */}
             <div className="relative group">
-              <div className="w-32 h-32 rounded-2xl bg-neutral-800 border-2 border-white/10 flex items-center justify-center overflow-hidden group-hover:border-cyan-400 transition-colors shadow-xl">
+              <div 
+                className="w-32 h-32 rounded-2xl bg-neutral-800 border-2 flex items-center justify-center overflow-hidden transition-colors shadow-xl"
+                style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#bffa76'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              >
                 <span className="text-gray-500 text-xs text-center px-4 uppercase font-bold tracking-tighter">
                   No profile image
                 </span>
@@ -45,7 +55,12 @@ const DashboardPage: React.FC = () => {
                 <div className="flex items-center gap-4 px-4 py-2 bg-black/30 rounded-lg border border-white/5">
                     <div className="flex flex-col">
                         <span className="text-[9px] text-gray-500 uppercase font-bold">Team</span>
-                        <span className="text-xs font-bold text-cyan-400 uppercase">Soul of Racing</span>
+                        <span 
+                          className="text-xs font-bold uppercase"
+                          style={{ color: '#bffa76' }}
+                        >
+                          Soul of Racing
+                        </span>
                     </div>
                 </div>
               </div>
@@ -97,7 +112,15 @@ const DashboardPage: React.FC = () => {
         <section>
           <div className="flex justify-between items-end mb-6 px-2">
             <h3 className="text-xl font-orbitron font-bold text-white uppercase tracking-wider">Recent Sessions</h3>
-            <button className="text-[10px] text-cyan-400 hover:text-cyan-300 uppercase font-bold tracking-widest underline decoration-cyan-400/30 underline-offset-4">
+            <button 
+              className="text-[10px] uppercase font-bold tracking-widest underline underline-offset-4 transition-colors"
+              style={{ 
+                color: '#bffa76',
+                textDecorationColor: 'rgba(191, 250, 118, 0.3)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#aae965'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#bffa76'}
+            >
               View Full History
             </button>
           </div>

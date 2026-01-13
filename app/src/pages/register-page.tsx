@@ -38,9 +38,19 @@ const RegisterPage: React.FC = () => {
 
       <div className="w-full max-w-md relative z-20">
         <h1 className="text-3xl font-orbitron font-bold mb-8 text-center">
-          <Link to="/" className="relative inline-block text-cyan-400 group">
+          <Link 
+            to="/" 
+            className="relative inline-block group"
+            style={{ color: '#bffa76' }}
+          >
             <span className="tracking-widest uppercase">Bolide</span>
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full shadow-[0_0_8px_#22d3ee]"></span>
+            <span 
+              className="absolute -bottom-1 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full"
+              style={{ 
+                backgroundColor: '#bffa76',
+                boxShadow: '0 0 8px #bffa76'
+              }}
+            ></span>
           </Link>
         </h1>
 
@@ -60,7 +70,15 @@ const RegisterPage: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 transition"
+                className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none transition"
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#bffa76'
+                  e.currentTarget.style.boxShadow = '0 0 0 1px #bffa76'
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgb(64 64 64)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
                 placeholder="driver@example.com"
               />
             </div>
@@ -75,12 +93,19 @@ const RegisterPage: React.FC = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 transition"
+                className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none transition"
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#bffa76'
+                  e.currentTarget.style.boxShadow = '0 0 0 1px #bffa76'
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgb(64 64 64)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
                 placeholder="Choose your name"
               />
             </div>
 
-            {/* POPRAWIONE LABELE PONIŻEJ (Usunięto 'name') */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-1">
                 Password
@@ -92,7 +117,15 @@ const RegisterPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 transition"
+                className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none transition"
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#bffa76'
+                  e.currentTarget.style.boxShadow = '0 0 0 1px #bffa76'
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgb(64 64 64)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
                 placeholder="••••••••"
               />
             </div>
@@ -108,7 +141,15 @@ const RegisterPage: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 transition"
+                className="w-full px-4 py-3 bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:outline-none transition"
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#bffa76'
+                  e.currentTarget.style.boxShadow = '0 0 0 1px #bffa76'
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgb(64 64 64)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
                 placeholder="Repeat password"
               />
             </div>
@@ -117,7 +158,19 @@ const RegisterPage: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full px-4 py-3 rounded-lg bg-cyan-500 text-black font-bold text-base hover:bg-cyan-400 transition shadow-lg shadow-cyan-500/20 mt-4"
+              className="w-full px-4 py-3 rounded-lg text-black font-bold text-base transition shadow-lg mt-4"
+              style={{ 
+                backgroundColor: '#bffa76',
+                boxShadow: '0 10px 15px rgba(191, 250, 118, 0.2)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#aae965'
+                e.currentTarget.style.boxShadow = '0 10px 15px rgba(170, 233, 101, 0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#bffa76'
+                e.currentTarget.style.boxShadow = '0 10px 15px rgba(191, 250, 118, 0.2)'
+              }}
             >
               Register
             </button>
@@ -125,7 +178,19 @@ const RegisterPage: React.FC = () => {
 
           <p className="mt-8 text-center text-sm text-gray-400">
             Already have an account?{' '}
-            <Link to="/login" className="text-cyan-400 font-semibold hover:text-cyan-300 hover:underline transition">
+            <Link 
+              to="/login" 
+              className="font-semibold transition"
+              style={{ color: '#bffa76' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#aae965'
+                e.currentTarget.style.textDecoration = 'underline'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#bffa76'
+                e.currentTarget.style.textDecoration = 'none'
+              }}
+            >
               Sign in
             </Link>
           </p>
