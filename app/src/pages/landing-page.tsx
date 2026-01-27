@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import AnimatedCarIntro from '../components/AnimatedCarIntro'
+import AnimatedTrackBackground from '../components/Animatedtrackbackground'
 
 // === INTERFEJSY DANYCH ===
 interface HowItWorksItem {
@@ -18,23 +18,32 @@ interface HowItWorksItem {
 interface FeatureItem {
 	title: string
 	desc: string
-	icon: string
 }
 
 interface TestimonialItem {
 	quote: string
 	author: string
 	role: string
+	iRating: number
+	avatar: string
 	improvement: string
+	series: string
 }
 
-interface LiveActivityItem {
-	user: string
-	action: string
-	track: string
-	time: string
-}
 // =============================
+
+// === KOLORY PREMIUM IRACING ===
+const COLORS = {
+	primary: '#ff6b00',      // iRacing Orange
+	primaryHover: '#ff8533',
+	gold: '#d4af37',         // Elite/Pro Gold
+	carbon: '#1a1a1a',
+	carbonLight: '#2d2d2d',
+	danger: '#dc2626',
+	success: '#22c55e',
+	text: '#e5e5e5',
+	textMuted: '#737373',
+}
 
 // Prawidłowa definicja łagodzenia 'easeOut' (Bézier curve)
 const EASE_OUT: [number, number, number, number] = [0, 0, 0.58, 1]
@@ -103,7 +112,6 @@ const AnimatedCounter: React.FC<{ end: number; suffix?: string; duration?: numbe
 
 const LandingPage: React.FC = () => {
 	const [scrollProgress, setScrollProgress] = useState(0)
-	const [currentActivityIndex, setCurrentActivityIndex] = useState(0)
 
 	// Scroll progress bar
 	useEffect(() => {
@@ -117,34 +125,26 @@ const LandingPage: React.FC = () => {
 		return () => window.removeEventListener('scroll', handleScroll)
 	}, [])
 
-	// Live activity feed rotation
-	useEffect(() => {
-		const interval = setInterval(() => {
-			setCurrentActivityIndex((prev) => (prev + 1) % liveActivities.length)
-		}, 3000)
-		return () => clearInterval(interval)
-	}, [])
-
 	// --- DANE DLA SEKCJI HOW IT WORKS ---
 	const howItWorksData: HowItWorksItem[] = [
 		{
 			step: 1,
-			title: 'Data Sync & Upload',
-			desc: 'Seamlessly integrate your iRacing telemetry files. Our platform handles the complex data processing, allowing you to focus purely on driving and analysis.',
+			title: 'Connect Your iRacing Account',
+			desc: 'Link your iRacing profile in seconds. We automatically sync your .ibt telemetry files after each session — no manual uploads needed. Your data flows directly from iRacing servers to our analysis engine.',
 			image: '/images/core-feature-1.png',
 			direction: 'left',
 		},
 		{
 			step: 2,
-			title: 'Deep Analysis Engine',
-			desc: 'Our proprietary engine compares your driving against ideal benchmarks, highlighting micro-differences in braking points, throttle application, and steering angle.',
+			title: 'AI Compares You to Aliens',
+			desc: 'Our engine overlays your lap against 50,000+ reference laps from top-split drivers. See exactly where you brake 12 meters too early, where you lift when aliens stay flat, and which corners cost you the most time.',
 			image: '/images/core-feature-2.png',
 			direction: 'right',
 		},
 		{
 			step: 3,
-			title: 'Actionable Recommendations',
-			desc: 'Receive immediate, easy-to-understand recommendations on where you can gain time, including setup tweaks and driving line adjustments.',
+			title: 'Get Corner-Specific Coaching',
+			desc: 'Receive prioritized tips like "Brake 8m later into T1" or "Carry 12 km/h more through Eau Rouge". Track your improvement over sessions and watch your iRating climb.',
 			image: '/images/core-feature-3.png',
 			direction: 'left',
 		},
@@ -153,278 +153,352 @@ const LandingPage: React.FC = () => {
 	// --- DANE DLA SEKCJI KEY INSIGHTS ---
 	const featureData: FeatureItem[] = [
 		{
-			icon: '⚡',
-			title: 'Dynamic Lap Delta',
-			desc: 'See exactly where you gain or lose time against your target, sector by sector, turn by turn. This is the difference between fast and fastest.',
+			title: 'Lap Delta Analysis',
+			desc: 'Real-time delta breakdown showing exactly where you gain or lose tenths. See your gap to the reference lap update corner-by-corner with sector-specific insights.',
 		},
 		{
-			icon: '📊',
-			title: 'Optimal Inputs Mapping',
-			desc: 'Detailed charts for steering, throttle, and brake input overlays show where you are too aggressive or too timid compared to pro drivers.',
+			title: 'Input Trace Overlay',
+			desc: 'Compare your throttle, brake, and steering inputs directly against alien laps. Spot trail-braking deficiencies, throttle hesitation, and steering corrections instantly.',
 		},
 		{
-			icon: '✅',
-			title: 'Live Setup Validation',
-			desc: 'Evaluate the effectiveness of your setup changes instantly, using tire temps, pressures, and suspension data after every run.',
+			title: 'Setup Correlation',
+			desc: 'A/B test your setups with data. See how spring rate changes affect tire temps, how wing adjustments impact corner speed, and find the perfect balance for your driving style.',
 		},
 	]
 
-	// --- TESTIMONIALS ---
+	// --- TESTIMONIALS Z IRATING ---
 	const testimonials: TestimonialItem[] = [
 		{
-			quote: "Shaved 3 seconds off my lap time in just one week! The AI insights are incredible.",
-			author: "John Davis",
-			role: "iRacing Pro",
-			improvement: "-3.2s"
+			quote: "Dropped 3 seconds at Spa in one week. The corner-by-corner breakdown showed me I was braking way too early into Les Combes. Fixed it, gained 1.2s just there.",
+			author: "Marcus Eriksson",
+			role: "GT3 Sprint Series",
+			iRating: 5847,
+			avatar: "ME",
+			improvement: "-3.2s",
+			series: "IMSA"
 		},
 		{
-			quote: "Finally consistent laptimes. Bolide showed me exactly where I was losing time.",
-			author: "Sarah Chen",
-			role: "GT3 Specialist",
-			improvement: "-2.8s"
+			quote: "Finally broke into top split. Bolide showed my throttle application out of slow corners was costing me 0.3s per lap. Now I'm consistently in the top 5.",
+			author: "Jennifer Walsh",
+			role: "Formula Driver",
+			iRating: 4521,
+			avatar: "JW",
+			improvement: "-2.8s",
+			series: "F4"
 		},
 		{
-			quote: "Game changer for setup optimization. My tire temps are perfect now.",
-			author: "Mike Rodriguez",
-			role: "Endurance Racer",
-			improvement: "-1.9s"
+			quote: "The setup correlation feature is insane. Tested 6 different rear wing settings and found the perfect balance. My tire deg improved by 15% over stint.",
+			author: "Carlos Mendez",
+			role: "Endurance Specialist",
+			iRating: 6203,
+			avatar: "CM",
+			improvement: "-1.9s",
+			series: "IMSA Endurance"
 		}
-	]
-
-	// --- LIVE ACTIVITIES ---
-	const liveActivities: LiveActivityItem[] = [
-		{ user: "Alex M.", action: "just set new PB at", track: "Monza", time: "1:47.203" },
-		{ user: "Sarah K.", action: "improved by 1.2s at", track: "Spa-Francorchamps", time: "2:17.891" },
-		{ user: "Mike T.", action: "unlocked achievement", track: "Master of Eau Rouge", time: "" },
-		{ user: "Emma L.", action: "completed analysis at", track: "Silverstone", time: "1:56.445" },
 	]
 
 	return (
 		<div className="bg-neutral-950 text-white overflow-x-hidden min-h-screen relative">
-			{/* Google Fonts - Dodane na górze */}
+			{/* Google Fonts */}
 			<style>{`
-				@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Michroma&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+				@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=Michroma&family=JetBrains+Mono:wght@400;500;600&display=swap');
 				
+				:root {
+					--color-primary: ${COLORS.primary};
+					--color-primary-hover: ${COLORS.primaryHover};
+					--color-gold: ${COLORS.gold};
+					--color-carbon: ${COLORS.carbon};
+					--color-carbon-light: ${COLORS.carbonLight};
+				}
+
 				@keyframes gradientShift {
 					0%, 100% { background-position: 0% 50%; }
 					50% { background-position: 100% 50%; }
 				}
 
-				@keyframes slideUp {
-					from { transform: translateY(0); opacity: 1; }
-					to { transform: translateY(-20px); opacity: 0; }
+				@keyframes pulse-glow {
+					0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.3); }
+					50% { box-shadow: 0 0 40px rgba(255, 107, 0, 0.6); }
 				}
 
-				.gradient-bg {
-					background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #000000 100%);
-					background-size: 200% 200%;
-					animation: gradientShift 15s ease infinite;
+				.carbon-texture {
+					background-image: 
+						linear-gradient(45deg, #1a1a1a 25%, transparent 25%),
+						linear-gradient(-45deg, #1a1a1a 25%, transparent 25%),
+						linear-gradient(45deg, transparent 75%, #1a1a1a 75%),
+						linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+					background-size: 4px 4px;
+					background-position: 0 0, 0 2px, 2px -2px, -2px 0px;
 				}
 
 				.glow-button {
 					position: relative;
 					overflow: hidden;
+					animation: pulse-glow 3s ease-in-out infinite;
 				}
 
 				.glow-button::before {
 					content: '';
 					position: absolute;
 					inset: 0;
-					background: #bffa76;
+					background: ${COLORS.primary};
 					filter: blur(20px);
-					opacity: 0.3;
+					opacity: 0.4;
 					z-index: -1;
 					transition: opacity 0.3s;
 				}
 
 				.glow-button:hover::before {
-					opacity: 0.6;
+					opacity: 0.7;
+				}
+
+				.irating-badge {
+					background: linear-gradient(135deg, ${COLORS.gold} 0%, #b8960c 100%);
+					color: #000;
+					font-weight: 700;
 				}
 			`}</style>
 
-			{/* SCROLL PROGRESS BAR */}
-			<div className="fixed top-0 left-0 w-full h-1 bg-neutral-900 z-[60]">
+			{/* SCROLL PROGRESS BAR - Throttle style */}
+			<div className="fixed top-0 left-0 w-full h-1.5 bg-neutral-900 z-[60]">
 				<div 
-					className="h-full transition-all duration-300"
+					className="h-full transition-all duration-150"
 					style={{ 
 						width: `${scrollProgress}%`,
-						background: 'linear-gradient(90deg, #bffa76 0%, #aae965 100%)'
+						background: `linear-gradient(90deg, ${COLORS.primary} 0%, ${COLORS.gold} 100%)`
 					}}
 				/>
 			</div>
 
-			{/* 🏎️ Animacja samochodu (WIDEO) - Z-index: 0 */}
-			<AnimatedCarIntro />
+			{/* Animowane tło z torami */}
+			<AnimatedTrackBackground />
 
-			{/* 1. HEADER - Z-index: 50 */}
+			{/* 1. HEADER */}
 			<motion.header
-				className="sticky top-0 z-50 bg-neutral-950/80 backdrop-blur border-b border-white/10"
+				className="sticky top-0 z-50 backdrop-blur-md border-b"
+				style={{ 
+					backgroundColor: 'rgba(10, 10, 10, 0.9)',
+					borderColor: 'rgba(255, 107, 0, 0.2)'
+				}}
 				initial={{ opacity: 0, y: -20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.5 }}
 			>
 				<div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-					<Link
-						to="/"
-						className="text-2xl font-black tracking-wider"
-						style={{ 
-							color: '#bffa76',
-							fontFamily: 'Michroma, sans-serif',
-							letterSpacing: '0.15em'
-						}}
-					>
-						BOLIDE
-					</Link>
+					<div className="flex items-center gap-4">
+						<Link
+							to="/"
+							className="text-2xl font-black tracking-wider"
+							style={{ 
+								color: COLORS.primary,
+								fontFamily: 'Michroma, sans-serif',
+								letterSpacing: '0.15em'
+							}}
+						>
+							BOLIDE
+						</Link>
+						{/* iRacing Compatible Badge */}
+						<div 
+							className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
+							style={{ 
+								backgroundColor: 'rgba(255, 107, 0, 0.1)',
+								border: '1px solid rgba(255, 107, 0, 0.3)',
+								color: COLORS.primary,
+								fontFamily: 'DM Sans, sans-serif'
+							}}
+						>
+							<span>🏁</span>
+							<span>Built for iRacing</span>
+						</div>
+					</div>
 
-					<nav className="flex gap-4 md:gap-8 text-sm items-center" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+					<nav className="flex gap-4 md:gap-6 text-sm items-center" style={{ fontFamily: 'DM Sans, sans-serif' }}>
 						<Link 
 							to="/login" 
-							className="transition font-medium"
-							style={{ color: 'rgb(209 213 219)' }}
-							onMouseEnter={(e) => e.currentTarget.style.color = '#bffa76'}
-							onMouseLeave={(e) => e.currentTarget.style.color = 'rgb(209 213 219)'}
+							className="transition font-medium hidden md:block"
+							style={{ color: COLORS.text }}
+							onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary}
+							onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}
 						>
 							Log in
 						</Link>
 						<Link
 							to="/register"
-							className="px-4 py-2 rounded-lg text-black font-semibold transition"
-							style={{ backgroundColor: '#bffa76' }}
-							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#aae965'}
-							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#bffa76'}
+							className="px-5 py-2.5 rounded-lg font-bold transition uppercase tracking-wide text-xs"
+							style={{ 
+								backgroundColor: COLORS.primary,
+								color: '#000'
+							}}
+							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryHover}
+							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary}
 						>
 							Start Free
 						</Link>
 						<Link
 							to="/dashboard"
-							className="px-8 py-4 text-black font-bold rounded-full transition"
-							style={{ backgroundColor: '#bffa76' }}
-							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#aae965'}
-							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#bffa76'}
+							className="px-5 py-2.5 font-bold rounded-lg transition uppercase tracking-wide text-xs border"
+							style={{ 
+								borderColor: 'rgba(255, 107, 0, 0.5)',
+								color: COLORS.primary
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.backgroundColor = 'rgba(255, 107, 0, 0.1)'
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.backgroundColor = 'transparent'
+							}}
 						>
-							Go to Dashboard
+							Dashboard
 						</Link>
 					</nav>
 				</div>
 			</motion.header>
 
-			{/* 2. HERO SECTION - Z-index: 10 */}
+			{/* 2. HERO SECTION */}
 			<section className="relative overflow-hidden pt-32 pb-48 md:pt-48 md:pb-64 z-10">
 				<div className="absolute inset-0" />
 
 				<motion.div
-					className="relative max-w-4xl mx-auto px-6 text-center"
+					className="relative max-w-5xl mx-auto px-6 text-center"
 					initial="initial"
 					animate="animate"
 					variants={stagger}
 				>
 					<motion.h1
-						className="text-5xl md:text-7xl font-black tracking-tight"
+						className="text-6xl md:text-8xl font-black tracking-tight leading-none"
 						variants={fadeInUp}
-						style={{ fontFamily: 'Rajdhani, sans-serif', letterSpacing: '-0.02em' }}
+						style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}
 					>
-						Data-Driven Performance.{' '}
-						<span style={{ color: '#bffa76' }}>Instant</span> Gains.
+						Find Your Missing{' '}
+						<span style={{ color: COLORS.primary }}>2 Seconds</span>
 					</motion.h1>
 
 					<motion.p
-						className="mt-6 max-w-2xl mx-auto text-gray-300 text-xl font-light"
+						className="mt-8 max-w-2xl mx-auto text-xl font-light leading-relaxed"
 						variants={fadeInUp}
-						style={{ fontFamily: 'Space Grotesk, sans-serif', lineHeight: '1.7' }}
+						style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.text }}
 					>
-						The ultimate platform for sim racers to transform raw telemetry into
-						instant, actionable insights. Master every corner and every setup.
+						AI-powered telemetry analysis that compares your driving to{' '}
+						<span style={{ color: COLORS.gold }} className="font-semibold">top-split aliens</span>.
+						See exactly where you lose time and get corner-specific coaching to climb the iRating ladder.
 					</motion.p>
 
-					<motion.div variants={fadeInUp}>
+					<motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
 						<Link
 							to="/register"
-							className="glow-button inline-block mt-12 px-10 py-4 rounded-xl text-black font-bold text-lg transition shadow-lg uppercase tracking-widest relative z-10"
+							className="glow-button inline-block px-10 py-4 rounded-xl font-bold text-lg transition uppercase tracking-widest relative z-10"
 							style={{ 
-								backgroundColor: '#bffa76',
-								boxShadow: '0 10px 40px rgba(191, 250, 118, 0.2)',
-								fontFamily: 'Rajdhani, sans-serif',
+								backgroundColor: COLORS.primary,
+								color: '#000',
+								fontFamily: 'DM Sans, sans-serif',
 								letterSpacing: '0.1em'
 							}}
 							onMouseEnter={(e) => {
-								e.currentTarget.style.backgroundColor = '#aae965'
-								e.currentTarget.style.boxShadow = '0 10px 40px rgba(170, 233, 101, 0.3)'
+								e.currentTarget.style.backgroundColor = COLORS.primaryHover
 							}}
 							onMouseLeave={(e) => {
-								e.currentTarget.style.backgroundColor = '#bffa76'
-								e.currentTarget.style.boxShadow = '0 10px 40px rgba(191, 250, 118, 0.2)'
+								e.currentTarget.style.backgroundColor = COLORS.primary
 							}}
 						>
-							Start Your Free Trial
+							Analyze Your First Lap Free
+						</Link>
+						<Link
+							to="#how-it-works"
+							className="inline-block px-10 py-4 rounded-xl font-bold text-lg transition uppercase tracking-widest border"
+							style={{ 
+								borderColor: 'rgba(255, 255, 255, 0.2)',
+								color: COLORS.text,
+								fontFamily: 'DM Sans, sans-serif',
+								letterSpacing: '0.1em'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.borderColor = COLORS.primary
+								e.currentTarget.style.color = COLORS.primary
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
+								e.currentTarget.style.color = COLORS.text
+							}}
+						>
+							See How It Works
 						</Link>
 					</motion.div>
 
 					{/* STATS COUNTERS */}
 					<motion.div 
-						className="grid grid-cols-3 gap-8 mt-20 max-w-3xl mx-auto"
+						className="grid grid-cols-3 gap-8 mt-24 max-w-3xl mx-auto"
 						variants={fadeInUp}
 					>
 						<div className="text-center">
 							<div 
-								className="text-4xl md:text-5xl font-black mb-2"
-								style={{ color: '#bffa76', fontFamily: 'Rajdhani, sans-serif' }}
+								className="text-5xl md:text-6xl font-black mb-2"
+								style={{ color: COLORS.primary, fontFamily: 'Bebas Neue, sans-serif' }}
 							>
 								<AnimatedCounter end={52000} suffix="+" />
 							</div>
 							<div 
-								className="text-sm text-gray-400 uppercase tracking-wider"
-								style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+								className="text-sm uppercase tracking-wider font-medium"
+								style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}
 							>
-								Sim Racers
+								iRacers Trust Us
 							</div>
 						</div>
 						<div className="text-center">
 							<div 
-								className="text-4xl md:text-5xl font-black mb-2"
-								style={{ color: '#bffa76', fontFamily: 'Rajdhani, sans-serif' }}
+								className="text-5xl md:text-6xl font-black mb-2"
+								style={{ color: COLORS.primary, fontFamily: 'Bebas Neue, sans-serif' }}
 							>
 								<AnimatedCounter end={2} suffix=".4s" duration={1.5} />
 							</div>
 							<div 
-								className="text-sm text-gray-400 uppercase tracking-wider"
-								style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+								className="text-sm uppercase tracking-wider font-medium"
+								style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}
 							>
-								Avg Time Saved
+								Avg. Time Gained
 							</div>
 						</div>
 						<div className="text-center">
 							<div 
-								className="text-4xl md:text-5xl font-black mb-2"
-								style={{ color: '#bffa76', fontFamily: 'Rajdhani, sans-serif' }}
+								className="text-5xl md:text-6xl font-black mb-2"
+								style={{ color: COLORS.gold, fontFamily: 'Bebas Neue, sans-serif' }}
 							>
-								<AnimatedCounter end={94} suffix="%" duration={1.8} />
+								<AnimatedCounter end={847} suffix="" duration={1.8} />
 							</div>
 							<div 
-								className="text-sm text-gray-400 uppercase tracking-wider"
-								style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+								className="text-sm uppercase tracking-wider font-medium"
+								style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}
 							>
-								Success Rate
+								Pro Drivers
 							</div>
 						</div>
 					</motion.div>
 				</motion.div>
 			</section>
 
-			{/* 3. HOW IT WORKS */}
-			<section className="py-24 border-t border-white/10 z-10 relative">
+			{/* 4. HOW IT WORKS */}
+			<section id="how-it-works" className="py-24 border-t z-10 relative" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
 				<div className="max-w-7xl mx-auto px-6">
 					<motion.h2
-						className="text-4xl font-bold mb-16 text-center uppercase tracking-wide"
+						className="text-5xl md:text-6xl font-black mb-4 text-center uppercase"
 						initial="initial"
 						whileInView="whileInView"
 						variants={slideInFromSide('left')}
 						viewport={{ once: true, amount: 0.3 }}
-						style={{ fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.05em' }}
+						style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}
 					>
 						How it Works
 					</motion.h2>
+					<motion.p
+						className="text-center mb-16 max-w-2xl mx-auto"
+						initial={{ opacity: 0 }}
+						whileInView={{ opacity: 1 }}
+						viewport={{ once: true }}
+						style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+					>
+						From your last session to actionable insights in under 60 seconds
+					</motion.p>
 
-					<div className="space-y-20">
+					<div className="space-y-24">
 						{howItWorksData.map((item, index) => (
 							<div key={item.step}>
 								<motion.div
@@ -441,23 +515,24 @@ const LandingPage: React.FC = () => {
 										whileInView="whileInView"
 									>
 										<span 
-											className="text-7xl font-black block mb-4 opacity-30"
+											className="text-8xl font-black block mb-4"
 											style={{ 
-												color: '#bffa76',
-												fontFamily: 'Michroma, sans-serif'
+												color: COLORS.primary,
+												opacity: 0.3,
+												fontFamily: 'Bebas Neue, sans-serif'
 											}}
 										>
-											{item.step}
+											0{item.step}
 										</span>
 										<h3 
-											className="text-3xl font-bold mb-4"
-											style={{ fontFamily: 'Rajdhani, sans-serif' }}
+											className="text-3xl md:text-4xl font-black mb-6 uppercase"
+											style={{ fontFamily: 'Bebas Neue, sans-serif' }}
 										>
 											{item.title}
 										</h3>
 										<p 
-											className="text-gray-400 text-lg leading-relaxed"
-											style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+											className="text-lg leading-relaxed"
+											style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.text }}
 										>
 											{item.desc}
 										</p>
@@ -468,30 +543,39 @@ const LandingPage: React.FC = () => {
 										initial="initial"
 										whileInView="whileInView"
 										viewport={{ once: true, amount: 0.5 }}
+										className="carbon-texture rounded-2xl p-1"
 									>
-										<img
-											src={item.image}
-											alt={item.title}
-											className="rounded-xl border border-white/10 shadow-lg"
-										/>
+										<div 
+											className="rounded-xl overflow-hidden"
+											style={{ 
+												border: '1px solid rgba(255, 107, 0, 0.2)',
+												boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)'
+											}}
+										>
+											<img
+												src={item.image}
+												alt={item.title}
+												className="w-full h-auto"
+											/>
+										</div>
 									</motion.div>
 								</motion.div>
 
-								{/* Animated connection line */}
+								{/* Connection line */}
 								{index < howItWorksData.length - 1 && (
-									<div className="flex justify-center my-12">
+									<div className="flex justify-center my-16">
 										<motion.div
-											className="w-1 h-16 rounded-full relative overflow-hidden"
-											style={{ backgroundColor: 'rgba(191, 250, 118, 0.2)' }}
+											className="w-1 h-20 rounded-full relative overflow-hidden"
+											style={{ backgroundColor: 'rgba(255, 107, 0, 0.2)' }}
 											initial="initial"
 											whileInView="whileInView"
 											viewport={{ once: true }}
 										>
 											<motion.div
-												className="absolute top-0 left-0 w-full h-8 rounded-full"
-												style={{ backgroundColor: '#bffa76' }}
+												className="absolute top-0 left-0 w-full h-10 rounded-full"
+												style={{ backgroundColor: COLORS.primary }}
 												animate={{
-													y: [0, 32, 0],
+													y: [0, 40, 0],
 												}}
 												transition={{
 													duration: 2,
@@ -508,11 +592,11 @@ const LandingPage: React.FC = () => {
 				</div>
 			</section>
 
-			{/* 4. KEY INSIGHTS */}
-			<section className="py-24 border-t border-white/10 z-10 relative">
+			{/* 5. KEY FEATURES */}
+			<section className="py-24 border-t z-10 relative" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
 				<div className="max-w-7xl mx-auto px-6">
 					<motion.h2
-						className="text-4xl font-bold mb-16 text-center uppercase tracking-wide"
+						className="text-5xl md:text-6xl font-black mb-4 text-center uppercase"
 						initial={{ opacity: 0, y: 50 }}
 						whileInView={{
 							opacity: 1,
@@ -523,10 +607,19 @@ const LandingPage: React.FC = () => {
 							},
 						}}
 						viewport={{ once: true, amount: 0.5 }}
-						style={{ fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.05em' }}
+						style={{ fontFamily: 'Bebas Neue, sans-serif' }}
 					>
 						The Competitive Advantage
 					</motion.h2>
+					<motion.p
+						className="text-center mb-16 max-w-2xl mx-auto"
+						initial={{ opacity: 0 }}
+						whileInView={{ opacity: 1 }}
+						viewport={{ once: true }}
+						style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+					>
+						Professional-grade analysis tools used by top iRacing drivers
+					</motion.p>
 
 					<motion.div
 						className="grid gap-8 md:grid-cols-3"
@@ -538,31 +631,35 @@ const LandingPage: React.FC = () => {
 						{featureData.map((feature, i) => (
 							<motion.div
 								key={i}
-								className="rounded-xl bg-neutral-900 p-6 transition flex flex-col h-full group cursor-pointer"
+								className="rounded-2xl p-8 transition flex flex-col h-full group cursor-pointer carbon-texture"
 								variants={fadeInUp}
 								style={{
-									border: '1px solid rgba(255, 255, 255, 0.1)'
+									border: '1px solid rgba(255, 255, 255, 0.05)',
+									backgroundColor: 'rgba(26, 26, 26, 0.8)'
 								}}
 								whileHover={{ 
 									y: -8,
-									boxShadow: '0 20px 40px rgba(191, 250, 118, 0.1)'
+									boxShadow: `0 30px 60px rgba(255, 107, 0, 0.15)`
 								}}
-								onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(191, 250, 118, 0.4)'}
-								onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+								onMouseEnter={(e) => e.currentTarget.style.borderColor = `rgba(255, 107, 0, 0.4)`}
+								onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)'}
 							>
-								<div className="text-4xl mb-4">{feature.icon}</div>
+								<div 
+									className="w-12 h-1 rounded-full mb-6"
+									style={{ backgroundColor: COLORS.primary }}
+								/>
 								<h3 
-									className="text-xl font-bold mb-3 uppercase tracking-wide"
+									className="text-2xl font-black mb-4 uppercase tracking-wide"
 									style={{ 
-										color: '#bffa76',
-										fontFamily: 'Rajdhani, sans-serif'
+										color: COLORS.text,
+										fontFamily: 'Bebas Neue, sans-serif'
 									}}
 								>
 									{feature.title}
 								</h3>
 								<p 
-									className="text-gray-400 leading-relaxed"
-									style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+									className="leading-relaxed"
+									style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}
 								>
 									{feature.desc}
 								</p>
@@ -572,54 +669,112 @@ const LandingPage: React.FC = () => {
 				</div>
 			</section>
 
-			{/* 5. TESTIMONIALS */}
-			<section className="py-24 border-t border-white/10 z-10 relative bg-neutral-900/20">
+			{/* 6. TESTIMONIALS */}
+			<section 
+				className="py-24 border-t z-10 relative"
+				style={{ 
+					borderColor: 'rgba(255, 255, 255, 0.05)',
+					backgroundColor: 'rgba(26, 26, 26, 0.3)'
+				}}
+			>
 				<div className="max-w-7xl mx-auto px-6">
 					<motion.h2
-						className="text-4xl font-bold mb-16 text-center uppercase tracking-wide"
+						className="text-5xl md:text-6xl font-black mb-4 text-center uppercase"
 						initial={{ opacity: 0, y: 50 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
-						style={{ fontFamily: 'Rajdhani, sans-serif' }}
+						style={{ fontFamily: 'Bebas Neue, sans-serif' }}
 					>
-						What Racers Say
+						What iRacers Say
 					</motion.h2>
+					<motion.p
+						className="text-center mb-16 max-w-2xl mx-auto"
+						initial={{ opacity: 0 }}
+						whileInView={{ opacity: 1 }}
+						viewport={{ once: true }}
+						style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+					>
+						Join thousands of drivers who've transformed their performance
+					</motion.p>
 
 					<div className="grid gap-8 md:grid-cols-3">
 						{testimonials.map((testimonial, i) => (
 							<motion.div
 								key={i}
-								className="bg-neutral-900/50 border border-white/10 rounded-xl p-6 relative"
+								className="rounded-2xl p-8 relative carbon-texture"
+								style={{
+									backgroundColor: 'rgba(26, 26, 26, 0.8)',
+									border: '1px solid rgba(255, 255, 255, 0.05)'
+								}}
 								initial={{ opacity: 0, y: 30 }}
 								whileInView={{ opacity: 1, y: 0 }}
 								viewport={{ once: true }}
 								transition={{ delay: i * 0.2 }}
+								whileHover={{ borderColor: 'rgba(255, 107, 0, 0.3)' }}
 							>
+								{/* Improvement Badge */}
 								<div 
-									className="absolute -top-4 right-4 text-4xl font-black px-3 py-1 rounded-lg"
+									className="absolute -top-4 right-6 text-3xl font-black px-4 py-2 rounded-lg"
 									style={{ 
-										backgroundColor: '#bffa76', 
+										backgroundColor: COLORS.primary, 
 										color: '#000',
-										fontFamily: 'Rajdhani, sans-serif'
+										fontFamily: 'JetBrains Mono, monospace'
 									}}
 								>
 									{testimonial.improvement}
 								</div>
-								<div className="text-5xl mb-4 opacity-20">"</div>
+
+								{/* Quote */}
+								<div 
+									className="text-6xl mb-4 leading-none"
+									style={{ color: COLORS.primary, opacity: 0.3 }}
+								>
+									"
+								</div>
 								<p 
-									className="text-gray-300 mb-6 italic"
-									style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+									className="mb-8 leading-relaxed"
+									style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.text }}
 								>
 									{testimonial.quote}
 								</p>
-								<div className="border-t border-white/10 pt-4">
-									<p 
-										className="font-bold text-white"
-										style={{ fontFamily: 'Rajdhani, sans-serif' }}
+
+								{/* Author Info */}
+								<div 
+									className="border-t pt-6 flex items-center gap-4"
+									style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
+								>
+									{/* Avatar */}
+									<div 
+										className="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-lg"
+										style={{ 
+											backgroundColor: 'rgba(255, 107, 0, 0.2)',
+											color: COLORS.primary,
+											fontFamily: 'DM Sans, sans-serif'
+										}}
 									>
-										{testimonial.author}
-									</p>
-									<p className="text-sm text-gray-500">{testimonial.role}</p>
+										{testimonial.avatar}
+									</div>
+									<div className="flex-1">
+										<p 
+											className="font-bold text-lg"
+											style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.text }}
+										>
+											{testimonial.author}
+										</p>
+										<p 
+											className="text-sm"
+											style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+										>
+											{testimonial.role} • {testimonial.series}
+										</p>
+									</div>
+									{/* iRating Badge */}
+									<div 
+										className="irating-badge px-3 py-1.5 rounded-lg text-sm font-mono"
+										title="iRating"
+									>
+										{testimonial.iRating.toLocaleString()}
+									</div>
 								</div>
 							</motion.div>
 						))}
@@ -627,96 +782,113 @@ const LandingPage: React.FC = () => {
 				</div>
 			</section>
 
-			{/* 6. BEFORE/AFTER COMPARISON */}
-			<section className="py-24 border-t border-white/10 z-10 relative">
+			{/* 7. BEFORE/AFTER COMPARISON */}
+			<section className="py-24 border-t z-10 relative" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
 				<div className="max-w-4xl mx-auto px-6">
 					<motion.h2
-						className="text-4xl font-bold mb-16 text-center uppercase tracking-wide"
+						className="text-5xl md:text-6xl font-black mb-4 text-center uppercase"
 						initial={{ opacity: 0, y: 50 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
-						style={{ fontFamily: 'Rajdhani, sans-serif' }}
+						style={{ fontFamily: 'Bebas Neue, sans-serif' }}
 					>
 						Your Progress
 					</motion.h2>
+					<motion.p
+						className="text-center mb-16 max-w-2xl mx-auto"
+						initial={{ opacity: 0 }}
+						whileInView={{ opacity: 1 }}
+						viewport={{ once: true }}
+						style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+					>
+						Real results from real drivers after 30 days with Bolide
+					</motion.p>
 
 					<div className="grid md:grid-cols-2 gap-8">
 						{/* BEFORE */}
 						<motion.div
-							className="bg-red-900/10 border border-red-500/20 rounded-xl p-8"
+							className="rounded-2xl p-8"
+							style={{
+								backgroundColor: 'rgba(220, 38, 38, 0.05)',
+								border: '1px solid rgba(220, 38, 38, 0.2)'
+							}}
 							initial={{ opacity: 0, x: -50 }}
 							whileInView={{ opacity: 1, x: 0 }}
 							viewport={{ once: true }}
 						>
-							<div className="text-center mb-6">
+							<div className="text-center mb-8">
 								<span 
-									className="text-sm uppercase tracking-wider text-red-400 font-bold"
-									style={{ fontFamily: 'Rajdhani, sans-serif' }}
+									className="text-sm uppercase tracking-widest font-bold"
+									style={{ color: COLORS.danger, fontFamily: 'DM Sans, sans-serif' }}
 								>
 									Before Bolide
 								</span>
 							</div>
-							<div className="space-y-4 text-center" style={{ fontFamily: 'Space Mono, monospace' }}>
+							<div className="space-y-6 text-center" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
 								<div>
-									<div className="text-3xl font-bold text-red-400">1:45.302</div>
-									<div className="text-sm text-gray-500">Lap Time</div>
+									<div className="text-4xl font-bold" style={{ color: COLORS.danger }}>1:45.302</div>
+									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>Best Lap Time</div>
 								</div>
 								<div>
-									<div className="text-xl text-gray-400">±0.8s</div>
-									<div className="text-sm text-gray-500">Consistency</div>
+									<div className="text-2xl" style={{ color: COLORS.textMuted }}>±0.8s</div>
+									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>Consistency Gap</div>
 								</div>
 								<div>
-									<div className="text-xl text-gray-400">Guessing</div>
-									<div className="text-sm text-gray-500">Setup Approach</div>
+									<div className="text-2xl" style={{ color: COLORS.textMuted }}>3,200</div>
+									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>iRating</div>
 								</div>
 							</div>
 						</motion.div>
 
 						{/* AFTER */}
 						<motion.div
-							className="bg-green-900/10 border rounded-xl p-8 relative overflow-hidden"
-							style={{ borderColor: 'rgba(191, 250, 118, 0.3)' }}
+							className="rounded-2xl p-8 relative overflow-hidden"
+							style={{
+								backgroundColor: 'rgba(255, 107, 0, 0.05)',
+								border: `1px solid rgba(255, 107, 0, 0.3)`
+							}}
 							initial={{ opacity: 0, x: 50 }}
 							whileInView={{ opacity: 1, x: 0 }}
 							viewport={{ once: true }}
 						>
 							<div 
-								className="absolute top-4 right-4 px-3 py-1 rounded-lg text-xs font-bold"
+								className="absolute top-4 right-4 px-3 py-1.5 rounded-lg text-sm font-bold"
 								style={{ 
-									backgroundColor: '#bffa76',
-									color: '#000'
+									backgroundColor: COLORS.primary,
+									color: '#000',
+									fontFamily: 'JetBrains Mono, monospace'
 								}}
 							>
 								-2.4s
 							</div>
-							<div className="text-center mb-6">
+							<div className="text-center mb-8">
 								<span 
-									className="text-sm uppercase tracking-wider font-bold"
+									className="text-sm uppercase tracking-widest font-bold"
 									style={{ 
-										color: '#bffa76',
-										fontFamily: 'Rajdhani, sans-serif'
+										color: COLORS.primary,
+										fontFamily: 'DM Sans, sans-serif'
 									}}
 								>
 									After Bolide
 								</span>
 							</div>
-							<div className="space-y-4 text-center" style={{ fontFamily: 'Space Mono, monospace' }}>
+							<div className="space-y-6 text-center" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
 								<div>
 									<div 
-										className="text-3xl font-bold"
-										style={{ color: '#bffa76' }}
+										className="text-4xl font-bold"
+										style={{ color: COLORS.primary }}
 									>
 										1:42.891
 									</div>
-									<div className="text-sm text-gray-500">Lap Time</div>
+									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>Best Lap Time</div>
 								</div>
 								<div>
-									<div className="text-xl text-white">±0.1s</div>
-									<div className="text-sm text-gray-500">Consistency</div>
+									<div className="text-2xl" style={{ color: COLORS.text }}>±0.15s</div>
+									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>Consistency Gap</div>
 								</div>
 								<div>
-									<div className="text-xl text-white">Data-Driven</div>
-									<div className="text-sm text-gray-500">Setup Approach</div>
+									<div className="text-2xl" style={{ color: COLORS.gold }}>4,100</div>
+									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>iRating (+900)</div>
 								</div>
 							</div>
 						</motion.div>
@@ -724,57 +896,91 @@ const LandingPage: React.FC = () => {
 				</div>
 			</section>
 
-			{/* 7. CTA BOTTOM */}
-			<section className="py-24 border-t border-white/10 text-center z-10 relative">
+			{/* 8. CTA BOTTOM */}
+			<section 
+				className="py-32 border-t text-center z-10 relative"
+				style={{ 
+					borderColor: 'rgba(255, 107, 0, 0.2)',
+					background: 'linear-gradient(180deg, transparent 0%, rgba(255, 107, 0, 0.05) 100%)'
+				}}
+			>
 				<motion.div
 					className="max-w-4xl mx-auto px-6"
-					initial={{ opacity: 0, scale: 0.8 }}
+					initial={{ opacity: 0, scale: 0.9 }}
 					whileInView={{ opacity: 1, scale: 1 }}
 					viewport={{ once: true, amount: 0.5 }}
 					transition={{ duration: 0.7 }}
 				>
 					<h2 
-						className="text-4xl font-black mb-6"
-						style={{ fontFamily: 'Rajdhani, sans-serif' }}
+						className="text-5xl md:text-7xl font-black mb-6 uppercase"
+						style={{ fontFamily: 'Bebas Neue, sans-serif' }}
 					>
-						Ready to Shave Off Seconds?
+						Ready to Find Your{' '}
+						<span style={{ color: COLORS.primary }}>Missing Seconds</span>?
 					</h2>
 					<p 
-						className="text-lg text-gray-400 mb-10 font-light"
-						style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+						className="text-xl mb-12 max-w-2xl mx-auto"
+						style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}
 					>
-						Join thousands of sim racers who use Bolide to stop guessing and
-						start dominating.
+						Join 52,000+ sim racers who stopped guessing and started winning.
+						First lap analysis is free — no credit card required.
 					</p>
 					<Link
 						to="/register"
-						className="glow-button inline-block px-14 py-5 rounded-2xl text-black font-bold text-lg transition shadow-xl uppercase tracking-widest relative z-10"
+						className="glow-button inline-block px-16 py-6 rounded-2xl font-bold text-xl transition uppercase tracking-widest relative z-10"
 						style={{ 
-							backgroundColor: '#bffa76',
-							boxShadow: '0 25px 50px rgba(191, 250, 118, 0.3)',
-							fontFamily: 'Rajdhani, sans-serif',
+							backgroundColor: COLORS.primary,
+							color: '#000',
+							fontFamily: 'DM Sans, sans-serif',
 							letterSpacing: '0.15em'
 						}}
 						onMouseEnter={(e) => {
-							e.currentTarget.style.backgroundColor = '#aae965'
-							e.currentTarget.style.boxShadow = '0 25px 50px rgba(170, 233, 101, 0.4)'
+							e.currentTarget.style.backgroundColor = COLORS.primaryHover
 						}}
 						onMouseLeave={(e) => {
-							e.currentTarget.style.backgroundColor = '#bffa76'
-							e.currentTarget.style.boxShadow = '0 25px 50px rgba(191, 250, 118, 0.3)'
+							e.currentTarget.style.backgroundColor = COLORS.primary
 						}}
 					>
-						DOMINATE IRACING NOW
+						Start Winning Now
 					</Link>
 				</motion.div>
 			</section>
 
-			{/* 8. FOOTER */}
+			{/* 9. FOOTER */}
 			<footer 
-				className="py-8 border-t border-white/10 text-center text-gray-500 text-sm z-10 relative"
-				style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+				className="py-12 border-t text-center z-10 relative"
+				style={{ 
+					borderColor: 'rgba(255, 255, 255, 0.05)',
+					fontFamily: 'DM Sans, sans-serif'
+				}}
 			>
-				© 2025 Bolide. Built for speed.
+				<div className="max-w-7xl mx-auto px-6">
+					<div className="flex flex-col md:flex-row justify-between items-center gap-6">
+						<div 
+							className="text-2xl font-black tracking-wider"
+							style={{ 
+								color: COLORS.primary,
+								fontFamily: 'Michroma, sans-serif'
+							}}
+						>
+							BOLIDE
+						</div>
+						<div 
+							className="flex items-center gap-2 text-sm"
+							style={{ color: COLORS.textMuted }}
+						>
+							<span>🏁</span>
+							<span>Built for iRacing</span>
+							<span className="mx-2">•</span>
+							<span>© 2025 Bolide</span>
+						</div>
+						<div className="flex gap-6 text-sm" style={{ color: COLORS.textMuted }}>
+							<a href="#" className="hover:text-white transition">Privacy</a>
+							<a href="#" className="hover:text-white transition">Terms</a>
+							<a href="#" className="hover:text-white transition">Discord</a>
+						</div>
+					</div>
+				</div>
 			</footer>
 		</div>
 	)
