@@ -49,7 +49,10 @@ const TelemetryChannelRow: React.FC<TelemetryChannelRowProps> = ({
 }) => {
 	return (
 		<div className="w-full bg-neutral-900/50 border-b border-white/10 flex flex-col p-2">
-			<div className="px-2 py-1 text-[10px] uppercase text-gray-500 font-bold tracking-wider">
+			<div 
+				className="px-2 py-1 text-[10px] uppercase text-gray-500 font-bold tracking-widest"
+				style={{ fontFamily: 'Rajdhani, sans-serif' }}
+			>
 				{title}
 			</div>
 			<div style={{ height: `${height}px` }} className="w-full relative">
@@ -76,6 +79,7 @@ const TelemetryChannelRow: React.FC<TelemetryChannelRowProps> = ({
 								backgroundColor: '#111',
 								border: '1px solid #333',
 								fontSize: '10px',
+								fontFamily: 'Space Mono, monospace'
 							}}
 							formatter={(value: unknown) =>
 								[value !== null ? String(value) : '0', title] as [
@@ -92,9 +96,9 @@ const TelemetryChannelRow: React.FC<TelemetryChannelRowProps> = ({
 								type={lineType}
 								dataKey={dataKey as string}
 								stroke="#ffffff"
-								strokeWidth={2} // Grubsza
+								strokeWidth={2}
 								strokeDasharray="5 5"
-								strokeOpacity={0.4} // Wyraźniejsza
+								strokeOpacity={0.4}
 								dot={false}
 								isAnimationActive={false}
 							/>
@@ -144,26 +148,38 @@ const TelemetryPage: React.FC = () => {
 			: (currentPoint.throttle / 100) * 1.5
 
 	return (
-		<div className="flex min-h-screen bg-black text-white font-sans overflow-hidden">
+		<div className="flex min-h-screen bg-black text-white overflow-hidden" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+			{/* Google Fonts */}
+			<style>{`
+				@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Michroma&display=swap');
+			`}</style>
+
 			<Sidebar activeTab="telemetry" />
 
 			<main className="flex-1 flex flex-col h-screen overflow-hidden">
 				<header className="flex justify-between items-center p-4 border-b border-white/10 bg-neutral-900">
-					<h1 className="text-xl font-orbitron font-bold uppercase tracking-wider">
+					<h1 
+						className="text-xl font-bold uppercase tracking-wider"
+						style={{ fontFamily: 'Rajdhani, sans-serif' }}
+					>
 						<span style={{ color: '#bffa76' }}>Telemetry Analysis</span>{' '}
 						<span className="text-gray-500 text-sm ml-2">[Beta View]</span>
 					</h1>
 					<div className="flex flex-col items-end">
-						<div className="text-xs text-gray-400">
+						<div 
+							className="text-xs text-gray-400"
+							style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+						>
 							Lap: 1:24.302 | Spa-Francorchamps
 						</div>
 						{/* LICZNIK DELTY */}
 						<div
-							className={`text-sm font-mono font-bold ${
+							className={`text-sm font-bold ${
 								deltaData[activeIndex].delta > 0
 									? 'text-red-500'
 									: 'text-green-500'
 							}`}
+							style={{ fontFamily: 'Space Mono, monospace' }}
 						>
 							Delta: {deltaData[activeIndex].delta > 0 ? '+' : ''}
 							{deltaData[activeIndex].delta.toFixed(3)}s
@@ -245,19 +261,28 @@ const TelemetryPage: React.FC = () => {
 						{/* GEAR & G-FORCE DASH */}
 						<div className="grid grid-cols-2 gap-4">
 							<div className="bg-black/40 border border-white/10 p-6 rounded-xl flex flex-col items-center">
-								<span className="text-gray-500 text-[10px] uppercase mb-1">
+								<span 
+									className="text-gray-500 text-[10px] uppercase mb-1 font-bold tracking-widest"
+									style={{ fontFamily: 'Rajdhani, sans-serif' }}
+								>
 									Gear
 								</span>
 								<span 
 									className="text-7xl font-black italic leading-none"
-									style={{ color: '#bffa76' }}
+									style={{ 
+										color: '#bffa76',
+										fontFamily: 'Michroma, sans-serif'
+									}}
 								>
 									{currentPoint.gear}
 								</span>
 							</div>
 
 							<div className="bg-black/40 border border-white/10 p-4 rounded-xl flex flex-col items-center">
-								<span className="text-gray-500 text-[10px] uppercase mb-2">
+								<span 
+									className="text-gray-500 text-[10px] uppercase mb-2 font-bold tracking-widest"
+									style={{ fontFamily: 'Rajdhani, sans-serif' }}
+								>
 									G-Force
 								</span>
 								<div className="relative w-20 h-20 border border-gray-700 rounded-full flex items-center justify-center">
@@ -283,7 +308,10 @@ const TelemetryPage: React.FC = () => {
 										style={{ height: `${currentPoint.throttle}%` }}
 									/>
 								</div>
-								<span className="text-[10px] mt-2 text-green-500 font-bold uppercase">
+								<span 
+									className="text-[10px] mt-2 text-green-500 font-bold uppercase tracking-wider"
+									style={{ fontFamily: 'Rajdhani, sans-serif' }}
+								>
 									Thr
 								</span>
 							</div>
@@ -294,7 +322,10 @@ const TelemetryPage: React.FC = () => {
 										style={{ height: `${currentPoint.brake}%` }}
 									/>
 								</div>
-								<span className="text-[10px] mt-2 text-red-500 font-bold uppercase">
+								<span 
+									className="text-[10px] mt-2 text-red-500 font-bold uppercase tracking-wider"
+									style={{ fontFamily: 'Rajdhani, sans-serif' }}
+								>
 									Brk
 								</span>
 							</div>
@@ -318,7 +349,10 @@ const TelemetryPage: React.FC = () => {
 						</div>
 
 						{/* DANE SEKTORÓW */}
-						<div className="p-4 bg-black/40 border border-white/10 rounded-xl text-[11px] font-mono space-y-2">
+						<div 
+							className="p-4 bg-black/40 border border-white/10 rounded-xl text-[11px] space-y-2"
+							style={{ fontFamily: 'Space Mono, monospace' }}
+						>
 							<div className="flex justify-between text-gray-400">
 								<span>Time:</span>{' '}
 								<span 
