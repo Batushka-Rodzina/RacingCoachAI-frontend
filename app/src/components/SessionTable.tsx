@@ -1,73 +1,245 @@
 // src/components/SessionTable.tsx
-import React from 'react';
+import React from 'react'
+
+// === KOLORY PREMIUM IRACING ===
+const COLORS = {
+	primary: '#ff6b00',
+	primaryHover: '#ff8533',
+	gold: '#d4af37',
+	carbon: '#1a1a1a',
+	text: '#e5e5e5',
+	textMuted: '#737373',
+	success: '#22c55e',
+}
 
 interface LapData {
-  id: number;
-  lapNumber: number;
-  lapTime: string;
-  s1: string;
-  s2: string;
-  s3: string;
-  isPersonalBest?: boolean;
+	id: number
+	lapNumber: number
+	lapTime: string
+	s1: string
+	s2: string
+	s3: string
+	isPersonalBest?: boolean
+	delta?: string
 }
 
 const sessions: LapData[] = [
-  { id: 1, lapNumber: 12, lapTime: "1:24.302", s1: "28.102", s2: "32.400", s3: "23.800", isPersonalBest: true },
-  { id: 2, lapNumber: 11, lapTime: "1:25.110", s1: "28.450", s2: "32.610", s3: "24.050" },
-  { id: 3, lapNumber: 10, lapTime: "1:24.890", s1: "28.220", s2: "32.550", s3: "24.120" },
-  { id: 4, lapNumber: 9, lapTime: "1:26.400", s1: "29.100", s2: "33.100", s3: "24.200" },
-];
+	{ id: 1, lapNumber: 12, lapTime: "1:24.302", s1: "28.102", s2: "32.400", s3: "23.800", isPersonalBest: true, delta: "-" },
+	{ id: 2, lapNumber: 11, lapTime: "1:25.110", s1: "28.450", s2: "32.610", s3: "24.050", delta: "+0.808" },
+	{ id: 3, lapNumber: 10, lapTime: "1:24.890", s1: "28.220", s2: "32.550", s3: "24.120", delta: "+0.588" },
+	{ id: 4, lapNumber: 9, lapTime: "1:26.400", s1: "29.100", s2: "33.100", s3: "24.200", delta: "+2.098" },
+	{ id: 5, lapNumber: 8, lapTime: "1:25.750", s1: "28.800", s2: "32.850", s3: "24.100", delta: "+1.448" },
+]
 
 const SessionTable: React.FC = () => {
-  return (
-    <div className="bg-neutral-900/50 border border-white/10 rounded-xl overflow-hidden shadow-2xl">
-      <div className="p-5 border-b border-white/10 flex justify-between items-center bg-neutral-900/80">
-        <h3 className="font-orbitron text-sm font-bold text-cyan-400 tracking-wider uppercase">
-          Recent Laps - Spa-Francorchamps
-        </h3>
-        <span className="text-xs text-gray-500 italic">Sorted by newest</span>
-      </div>
-      
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="text-gray-500 uppercase text-[10px] tracking-widest bg-black/20">
-            <tr>
-              <th className="px-6 py-4 font-medium">Lap</th>
-              <th className="px-6 py-4 font-medium text-white">Lap Time</th>
-              <th className="px-6 py-4 font-medium">S1</th>
-              <th className="px-6 py-4 font-medium">S2</th>
-              <th className="px-6 py-4 font-medium">S3</th>
-              <th className="px-6 py-4 font-medium text-right">Details</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5 font-mono">
-            {sessions.map((lap) => (
-              <tr 
-                key={lap.id} 
-                className={`hover:bg-white/5 transition-colors group ${lap.isPersonalBest ? 'bg-cyan-500/5' : ''}`}
-              >
-                <td className="px-6 py-4 text-gray-400">{lap.lapNumber}</td>
-                <td className={`px-6 py-4 font-bold ${lap.isPersonalBest ? 'text-cyan-400' : 'text-white'}`}>
-                  {lap.lapTime}
-                  {lap.isPersonalBest && <span className="ml-2 text-[10px] bg-cyan-500/20 px-1.5 py-0.5 rounded text-cyan-400 uppercase">PB</span>}
-                </td>
-                <td className="px-6 py-4 text-gray-300">{lap.s1}</td>
-                <td className="px-6 py-4 text-gray-300">{lap.s2}</td>
-                <td className="px-6 py-4 text-gray-300">{lap.s3}</td>
-                <td className="px-6 py-4 text-right">
-                  <button className="text-gray-500 hover:text-cyan-400 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 inline">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
+	return (
+		<div 
+			className="rounded-2xl overflow-hidden"
+			style={{
+				backgroundColor: 'rgba(26, 26, 26, 0.6)',
+				border: '1px solid rgba(255, 255, 255, 0.05)',
+				boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)'
+			}}
+		>
+			{/* Header */}
+			<div 
+				className="px-6 py-4 flex justify-between items-center"
+				style={{
+					backgroundColor: 'rgba(26, 26, 26, 0.8)',
+					borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+				}}
+			>
+				<div>
+					<h3 
+						className="text-lg font-black uppercase tracking-wide"
+						style={{ 
+							fontFamily: 'Bebas Neue, sans-serif',
+							color: COLORS.text
+						}}
+					>
+						Recent Laps
+					</h3>
+					<p 
+						className="text-xs"
+						style={{ 
+							color: COLORS.textMuted,
+							fontFamily: 'DM Sans, sans-serif'
+						}}
+					>
+						Spa-Francorchamps • GT3
+					</p>
+				</div>
+				<div 
+					className="px-3 py-1 rounded-full text-xs font-semibold"
+					style={{ 
+						backgroundColor: 'rgba(255, 107, 0, 0.1)',
+						color: COLORS.primary,
+						fontFamily: 'DM Sans, sans-serif'
+					}}
+				>
+					{sessions.length} laps
+				</div>
+			</div>
 
-export default SessionTable;
+			{/* Table */}
+			<div className="overflow-x-auto">
+				<table className="w-full text-left text-sm">
+					<thead>
+						<tr 
+							style={{ 
+								backgroundColor: 'rgba(0, 0, 0, 0.3)',
+								borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+							}}
+						>
+							<th 
+								className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold"
+								style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+							>
+								Lap
+							</th>
+							<th 
+								className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold"
+								style={{ color: COLORS.text, fontFamily: 'DM Sans, sans-serif' }}
+							>
+								Lap Time
+							</th>
+							<th 
+								className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold"
+								style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+							>
+								Delta
+							</th>
+							<th 
+								className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold"
+								style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+							>
+								S1
+							</th>
+							<th 
+								className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold"
+								style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+							>
+								S2
+							</th>
+							<th 
+								className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold"
+								style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+							>
+								S3
+							</th>
+							<th className="px-6 py-4 text-right">
+								<span className="sr-only">Actions</span>
+							</th>
+						</tr>
+					</thead>
+					<tbody style={{ fontFamily: 'JetBrains Mono, monospace' }}>
+						{sessions.map((lap) => (
+							<tr 
+								key={lap.id}
+								className="transition-all duration-200 cursor-pointer"
+								style={{
+									backgroundColor: lap.isPersonalBest ? 'rgba(255, 107, 0, 0.05)' : 'transparent',
+									borderBottom: '1px solid rgba(255, 255, 255, 0.03)'
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.backgroundColor = lap.isPersonalBest 
+										? 'rgba(255, 107, 0, 0.1)' 
+										: 'rgba(255, 255, 255, 0.03)'
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.backgroundColor = lap.isPersonalBest 
+										? 'rgba(255, 107, 0, 0.05)' 
+										: 'transparent'
+								}}
+							>
+								<td className="px-6 py-4" style={{ color: COLORS.textMuted }}>
+									{lap.lapNumber}
+								</td>
+								<td className="px-6 py-4">
+									<div className="flex items-center gap-2">
+										<span 
+											className="font-bold"
+											style={{ color: lap.isPersonalBest ? COLORS.primary : COLORS.text }}
+										>
+											{lap.lapTime}
+										</span>
+										{lap.isPersonalBest && (
+											<span 
+												className="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase"
+												style={{ 
+													backgroundColor: 'rgba(255, 107, 0, 0.2)',
+													color: COLORS.primary,
+													fontFamily: 'DM Sans, sans-serif'
+												}}
+											>
+												PB
+											</span>
+										)}
+									</div>
+								</td>
+								<td className="px-6 py-4">
+									<span style={{ 
+										color: lap.delta === '-' ? COLORS.textMuted : 
+											   lap.delta?.startsWith('+') ? '#ef4444' : COLORS.success
+									}}>
+										{lap.delta}
+									</span>
+								</td>
+								<td className="px-6 py-4" style={{ color: COLORS.text }}>{lap.s1}</td>
+								<td className="px-6 py-4" style={{ color: COLORS.text }}>{lap.s2}</td>
+								<td className="px-6 py-4" style={{ color: COLORS.text }}>{lap.s3}</td>
+								<td className="px-6 py-4 text-right">
+									<button 
+										className="p-2 rounded-lg transition-all duration-200"
+										style={{ color: COLORS.textMuted }}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.color = COLORS.primary
+											e.currentTarget.style.backgroundColor = 'rgba(255, 107, 0, 0.1)'
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.color = COLORS.textMuted
+											e.currentTarget.style.backgroundColor = 'transparent'
+										}}
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+											<path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+										</svg>
+									</button>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+
+			{/* Footer */}
+			<div 
+				className="px-6 py-4 flex justify-between items-center"
+				style={{
+					backgroundColor: 'rgba(0, 0, 0, 0.2)',
+					borderTop: '1px solid rgba(255, 255, 255, 0.05)'
+				}}
+			>
+				<p 
+					className="text-xs"
+					style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+				>
+					Showing {sessions.length} of 47 laps
+				</p>
+				<button
+					className="text-xs font-semibold uppercase tracking-wider transition-colors duration-200"
+					style={{ 
+						color: COLORS.primary,
+						fontFamily: 'DM Sans, sans-serif'
+					}}
+					onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primaryHover}
+					onMouseLeave={(e) => e.currentTarget.style.color = COLORS.primary}
+				>
+					View All →
+				</button>
+			</div>
+		</div>
+	)
+}
+
+export default SessionTable
