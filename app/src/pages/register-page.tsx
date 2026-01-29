@@ -1,7 +1,7 @@
 // src/pages/register-page.tsx
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import AnimatedTrackBackground from '../components/AnimatedTrackBackground'
+import TrackBackground from '../components/Trackbackground.tsx'
 import VerificationModal from '../components/VerificationModal'
 
 // === KOLORY PREMIUM IRACING ===
@@ -85,7 +85,7 @@ const RegisterPage: React.FC = () => {
 			`}</style>
 
 			{/* Background */}
-			<AnimatedTrackBackground />
+			<TrackBackground showTrackName={false} showIndicators={false} />
 			<div className="absolute inset-0 bg-neutral-950/50 z-10" />
 
 			<div className="w-full max-w-md relative z-20">

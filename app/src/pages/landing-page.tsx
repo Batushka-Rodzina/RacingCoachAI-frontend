@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import AnimatedTrackBackground from '../components/Animatedtrackbackground'
+import AnimatedTrackBackground from '../components/Trackbackground.tsx'
 
 // === INTERFEJSY DANYCH ===
 interface HowItWorksItem {
