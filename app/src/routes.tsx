@@ -4,6 +4,9 @@ import RegisterPage from './pages/register-page';
 import LandingPage from './pages/landing-page';
 import DashboardPage from './pages/dashboard-page';
 import TelemetryPage from './pages/telemetry-page'; // Import nowej strony
+import CommunityPage from './pages/community-page';
+import TeamPage from './pages/team-page';
+
 
 export const routes = [
   {
@@ -27,4 +30,14 @@ export const routes = [
     path: '/telemetry',
     element: <TelemetryPage />,
   },
+
+// Dodaj do routes:
+{
+	path: '/community',
+	element: <CommunityPage />,
+},
+{
+	path: '/team',
+	element: <TeamPage />,
+}
 ];
