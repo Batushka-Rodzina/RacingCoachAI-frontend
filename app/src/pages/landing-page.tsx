@@ -131,21 +131,21 @@ const LandingPage: React.FC = () => {
 			step: 1,
 			title: 'Connect Your iRacing Account',
 			desc: 'Link your iRacing profile in seconds. We automatically sync your .ibt telemetry files after each session — no manual uploads needed. Your data flows directly from iRacing servers to our analysis engine.',
-			image: '/images/core-feature-1.png',
+			image: '/images/index5.png',
 			direction: 'left',
 		},
 		{
 			step: 2,
 			title: 'AI Compares You to Aliens',
 			desc: 'Our engine overlays your lap against 50,000+ reference laps from top-split drivers. See exactly where you brake 12 meters too early, where you lift when aliens stay flat, and which corners cost you the most time.',
-			image: '/images/core-feature-2.png',
+			image: '/images/index4.png',
 			direction: 'right',
 		},
 		{
 			step: 3,
 			title: 'Get Corner-Specific Coaching',
 			desc: 'Receive prioritized tips like "Brake 8m later into T1" or "Carry 12 km/h more through Eau Rouge". Track your improvement over sessions and watch your iRating climb.',
-			image: '/images/core-feature-3.png',
+			image: '/images/index3.png',
 			direction: 'left',
 		},
 	]
@@ -307,7 +307,6 @@ const LandingPage: React.FC = () => {
 								fontFamily: 'DM Sans, sans-serif'
 							}}
 						>
-							<span>🏁</span>
 							<span>Built for iRacing</span>
 						</div>
 					</div>

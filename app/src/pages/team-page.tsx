@@ -451,7 +451,7 @@ const MemberRow: React.FC<MemberRowProps> = ({ member, rank, isCurrentUser, team
 				className="text-sm"
 				style={{ color: COLORS.text, fontFamily: 'JetBrains Mono, monospace' }}
 			>
-				🏆 {member.podiums}
+				 {member.podiums}
 			</span>
 		</div>
 
@@ -1093,7 +1093,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({ member, teamColor
 				<StatBox label="iRating" value={member.iRating.toLocaleString()} color={teamColor} />
 				<StatBox label="Safety Rating" value={member.safetyRating.toFixed(2)} color={COLORS.gold} />
 				<StatBox label="Total Races" value={member.totalRaces.toString()} color={COLORS.text} />
-				<StatBox label="Podiums" value={`🏆 ${member.podiums}`} color={COLORS.text} />
+				<StatBox label="Podiums" value={`${member.podiums}`} color={COLORS.text} />
 			</div>
 
 			{/* Best Lap */}
