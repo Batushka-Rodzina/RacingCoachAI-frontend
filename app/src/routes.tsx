@@ -6,6 +6,7 @@ import DashboardPage from './pages/dashboard-page';
 import TelemetryPage from './pages/telemetry-page'; // Import nowej strony
 import CommunityPage from './pages/community-page';
 import TeamPage from './pages/team-page';
+import CoachPage from './pages/coach-page';
 
 
 export const routes = [
@@ -35,6 +36,10 @@ export const routes = [
 {
 	path: '/community',
 	element: <CommunityPage />,
+},
+{
+	path: '/coach',
+	element: <CoachPage />,
 },
 {
 	path: '/team',
