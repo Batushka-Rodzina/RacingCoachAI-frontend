@@ -1,8 +1,11 @@
-// src/pages/telemetry-page.tsx
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+// src/pages/TelemetryAnalysisPage.tsx
+import React, { useCallback, useEffect, useId, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
+import { useAuthStore } from '../store/authStore'
 
-// === KOLORY ===
+const API_URL = 'http://127.0.0.1:8000/sessions'
+
 const COLORS = {
 	primary: '#ff6b00',
 	primaryHover: '#ff8533',
@@ -13,8 +16,6 @@ const COLORS = {
 	speed: '#3b82f6',
 	rpm: '#a855f7',
 }
-
-// Kolory segmentów (10 różnych)
 const SEGMENT_COLORS = [
 	'#ff6b6b',
 	'#ffa502',
@@ -28,7 +29,6 @@ const SEGMENT_COLORS = [
 	'#1e90ff',
 ]
 
-// === TYPY ===
 interface TelemetryData {
 	Speed: number
 	LapDistPct: number
@@ -50,108 +50,103 @@ interface TelemetryData {
 	PositionType: number
 }
 
-// CSS
 const cssStyles = `
-	@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-	
-	.carbon-bg {
-		background-color: #0a0a0a;
-		background-image: 
-			linear-gradient(45deg, #0f0f0f 25%, transparent 25%),
-			linear-gradient(-45deg, #0f0f0f 25%, transparent 25%),
-			linear-gradient(45deg, transparent 75%, #0f0f0f 75%),
-			linear-gradient(-45deg, transparent 75%, #0f0f0f 75%);
-		background-size: 4px 4px;
-	}
-
-	.carbon-card {
-		background-color: rgba(26, 26, 26, 0.6);
-		background-image: 
-			linear-gradient(45deg, rgba(21, 21, 21, 0.5) 25%, transparent 25%),
-			linear-gradient(-45deg, rgba(21, 21, 21, 0.5) 25%, transparent 25%),
-			linear-gradient(45deg, transparent 75%, rgba(21, 21, 21, 0.5) 75%),
-			linear-gradient(-45deg, transparent 75%, rgba(21, 21, 21, 0.5) 75%);
-		background-size: 4px 4px;
-	}
-
-	.custom-scrollbar::-webkit-scrollbar { width: 6px; }
-	.custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
-	.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 107, 0, 0.3); border-radius: 3px; }
-
-	.segment-path {
-		cursor: pointer;
-		transition: opacity 0.2s, stroke-width 0.2s;
-	}
-	.segment-path:hover {
-		opacity: 1 !important;
-		stroke-width: 4px;
-	}
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  .carbon-bg { background-color: #0a0a0a; background-image: linear-gradient(45deg, #0f0f0f 25%, transparent 25%), linear-gradient(-45deg, #0f0f0f 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #0f0f0f 75%), linear-gradient(-45deg, transparent 75%, #0f0f0f 75%); background-size: 4px 4px; }
+  .carbon-card { background-color: rgba(26, 26, 26, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); }
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 107, 0, 0.3); border-radius: 3px; }
+  .segment-path { cursor: pointer; transition: opacity 0.2s, stroke-width 0.2s; }
+  .segment-path:hover { opacity: 1 !important; stroke-width: 4px; }
 `
 
-const TelemetryPage: React.FC = () => {
+const TelemetryAnalysisPage: React.FC = () => {
+	const { sessionId, lapNum } = useParams<{
+		sessionId: string
+		lapNum: string
+	}>()
+	const navigate = useNavigate()
+	const token = useAuthStore((state) => state.token)
+
 	const [telemetryData, setTelemetryData] = useState<TelemetryData[]>([])
-	const [isLoading, setIsLoading] = useState(false)
-	const [fileName, setFileName] = useState<string | null>(null)
+	const [isLoading, setIsLoading] = useState(true)
+	const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
 	const [hoverIndex, setHoverIndex] = useState<number | null>(null)
 	const [selectedSegment, setSelectedSegment] = useState<number | null>(null)
-	const fileInputRef = useRef<HTMLInputElement>(null)
 
-	// Parsowanie CSV
 	const parseCSV = useCallback((text: string): TelemetryData[] => {
 		const lines = text.trim().split('\n')
+		if (lines.length < 2) return []
 		const headers = lines[0].split(',')
 
 		return lines.slice(1).map((line) => {
 			const values = line.split(',')
-			const obj: any = {}
+			const obj: Record<string, number | boolean> = {}
+
 			headers.forEach((header, i) => {
+				const cleanHeader = header.trim()
 				const value = values[i]
-				if (header === 'ABSActive' || header === 'DRSActive') {
-					obj[header] = value === 'true'
+				if (cleanHeader === 'ABSActive' || cleanHeader === 'DRSActive') {
+					obj[cleanHeader] = value.toLowerCase() === 'true'
 				} else {
-					obj[header] = parseFloat(value)
+					obj[cleanHeader] = parseFloat(value) || 0
 				}
 			})
-			return obj as TelemetryData
+			return obj as unknown as TelemetryData
 		})
 	}, [])
 
-	// Import pliku
-	const handleFileImport = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const file = e.target.files?.[0]
-			if (!file) return
-
+	useEffect(() => {
+		const fetchLapData = async () => {
 			setIsLoading(true)
-			setFileName(file.name)
-			setSelectedSegment(null)
+			try {
+				const sesRes = await fetch(`${API_URL}/${sessionId}`, {
+					headers: { Authorization: `Bearer ${token}` },
+				})
+				if (!sesRes.ok) throw new Error('Session not found')
+				const sessionData = await sesRes.json()
 
-			const reader = new FileReader()
-			reader.onload = (event) => {
-				const text = event.target?.result as string
-				const data = parseCSV(text)
-				setTelemetryData(data)
+				const targetLap = sessionData.laps.find(
+					(l: any) => l.lap_number.toString() === lapNum
+				)
+				if (!targetLap) throw new Error('Lap not found in this session')
+
+				const csvRes = await fetch(
+					`${targetLap.telemetry_data_url}?t=${Date.now()}`,
+					{
+						method: 'GET',
+						mode: 'cors',
+						headers: { 'Content-Type': 'text/csv' },
+					}
+				)
+				if (!csvRes.ok)
+					throw new Error('Failed to load telemetry from S3. Check AWS CORS.')
+
+				const csvText = await csvRes.text()
+				setTelemetryData(parseCSV(csvText))
+			} catch (err: any) {
+				console.error(err)
+				setErrorMsg(err.message || 'Unknown error occurred')
+			} finally {
 				setIsLoading(false)
 			}
-			reader.readAsText(file)
-		},
-		[parseCSV]
-	)
+		}
 
-	// Dane dla mapy toru z segmentami
-	// Dane dla mapy toru z segmentami
+		if (sessionId && lapNum && token) fetchLapData()
+	}, [sessionId, lapNum, token, parseCSV])
+
 	const trackMapData = useMemo(() => {
 		if (telemetryData.length === 0) return null
-
-		const lats = telemetryData.map((d) => d.Lat)
-		const lons = telemetryData.map((d) => d.Lon)
-
-		const minLat = Math.min(...lats)
-		const maxLat = Math.max(...lats)
-		const minLon = Math.min(...lons)
-		const maxLon = Math.max(...lons)
-
+		const lats = telemetryData.map((d) => d.Lat),
+			lons = telemetryData.map((d) => d.Lon)
+		const minLat = Math.min(...lats),
+			maxLat = Math.max(...lats)
+		const minLon = Math.min(...lons),
+			maxLon = Math.max(...lons)
 		const padding = 10
+
 		const normalizedPoints = telemetryData.map((d, i) => ({
 			x: padding + ((d.Lon - minLon) / (maxLon - minLon)) * (100 - 2 * padding),
 			y: padding + ((maxLat - d.Lat) / (maxLat - minLat)) * (100 - 2 * padding),
@@ -160,49 +155,31 @@ const TelemetryPage: React.FC = () => {
 			lapPct: d.LapDistPct,
 		}))
 
-		// Grupuj punkty według segmentów
-		const segments: {
-			points: typeof normalizedPoints
-			startPct: number
-			endPct: number
-		}[] = []
-		for (let i = 0; i < 10; i++) {
-			const segmentPoints = normalizedPoints.filter((p) => p.segment === i)
-			segments.push({
-				points: segmentPoints,
-				startPct: i * 10,
-				endPct: (i + 1) * 10,
-			})
-		}
+		const segments = Array.from({ length: 10 }, (_, i) => ({
+			points: normalizedPoints.filter((p) => p.segment === i),
+			startPct: i * 10,
+			endPct: (i + 1) * 10,
+		}))
 
 		return { points: normalizedPoints, segments }
 	}, [telemetryData])
 
-	// Filtrowane dane dla wybranego segmentu
 	const filteredData = useMemo(() => {
-		if (selectedSegment === null) {
-			return { data: telemetryData, startIndex: 0 }
-		}
-
-		const segmentStart = selectedSegment / 10
-		const segmentEnd = (selectedSegment + 1) / 10
-
+		if (selectedSegment === null) return { data: telemetryData, startIndex: 0 }
+		const segmentStart = selectedSegment / 10,
+			segmentEnd = (selectedSegment + 1) / 10
 		const filtered = telemetryData.filter(
 			(d) => d.LapDistPct >= segmentStart && d.LapDistPct < segmentEnd
 		)
-
 		const startIndex = telemetryData.findIndex(
 			(d) => d.LapDistPct >= segmentStart && d.LapDistPct < segmentEnd
 		)
-
-		return { data: filtered, startIndex: startIndex >= 0 ? startIndex : 0 }
+		return { data: filtered, startIndex: Math.max(0, startIndex) }
 	}, [telemetryData, selectedSegment])
 
-	// Obliczenia dla wykresów
 	const chartData = useMemo(() => {
 		if (filteredData.data.length === 0) return null
-
-		const speeds = filteredData.data.map((d) => d.Speed * 3.6)
+		const speeds = filteredData.data.map((d) => d.Speed)
 		const rpms = filteredData.data.map((d) => d.RPM)
 		const throttles = filteredData.data.map((d) => d.Throttle * 100)
 		const brakes = filteredData.data.map((d) => d.Brake * 100)
@@ -215,24 +192,17 @@ const TelemetryPage: React.FC = () => {
 			maxSpeed: Math.max(...speeds),
 			minSpeed: Math.min(...speeds),
 			maxRPM: Math.max(...rpms),
-			avgSpeed: speeds.reduce((a, b) => a + b, 0) / speeds.length,
 			avgThrottle: throttles.reduce((a, b) => a + b, 0) / throttles.length,
 			avgBrake: brakes.reduce((a, b) => a + b, 0) / brakes.length,
 		}
 	}, [filteredData])
 
-	// Obsługa hover
 	const handleChartHover = useCallback(
 		(e: React.MouseEvent<SVGSVGElement>, dataLength: number) => {
 			const rect = e.currentTarget.getBoundingClientRect()
-			const x = e.clientX - rect.left
-			const percentage = x / rect.width
-			const localIndex = Math.min(
-				Math.floor(percentage * dataLength),
-				dataLength - 1
-			)
-			const globalIndex = filteredData.startIndex + localIndex
-			setHoverIndex(globalIndex >= 0 ? globalIndex : null)
+			const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width))
+			const localIndex = Math.floor((x / rect.width) * (dataLength - 1))
+			setHoverIndex(filteredData.startIndex + localIndex)
 		},
 		[filteredData.startIndex]
 	)
@@ -241,11 +211,10 @@ const TelemetryPage: React.FC = () => {
 		setHoverIndex(null)
 	}, [])
 
-	// Aktualne dane przy hover
 	const currentData =
 		hoverIndex !== null && telemetryData[hoverIndex]
 			? {
-					speed: (telemetryData[hoverIndex].Speed * 3.6).toFixed(1),
+					speed: telemetryData[hoverIndex].Speed.toFixed(1),
 					rpm: telemetryData[hoverIndex].RPM.toFixed(0),
 					throttle: (telemetryData[hoverIndex].Throttle * 100).toFixed(0),
 					brake: (telemetryData[hoverIndex].Brake * 100).toFixed(0),
@@ -256,192 +225,73 @@ const TelemetryPage: React.FC = () => {
 				}
 			: null
 
-	// Kliknięcie w segment
-	const handleSegmentClick = (segmentIndex: number) => {
-		setSelectedSegment(segmentIndex)
-		setHoverIndex(null)
-	}
-
-	// Powrót do widoku ogólnego
-	const handleBackToFullLap = () => {
-		setSelectedSegment(null)
-		setHoverIndex(null)
-	}
-
 	return (
 		<div className="flex min-h-screen bg-neutral-950 text-white overflow-hidden">
 			<style dangerouslySetInnerHTML={{ __html: cssStyles }} />
-
 			<Sidebar activeTab="telemetry" />
 
 			<div className="flex-1 flex flex-col carbon-bg">
-				{/* Header */}
-				<header className="flex-shrink-0 p-6 border-b border-white/5">
-					<div className="flex items-center justify-between">
-						<div>
-							<h1
-								className="text-3xl font-black uppercase tracking-wide"
-								style={{
-									fontFamily: 'Bebas Neue, sans-serif',
-									color: COLORS.text,
-								}}
-							>
-								Telemetry Analysis
-							</h1>
-							{fileName && (
-								<p
-									className="text-sm mt-1"
-									style={{
-										color: COLORS.textMuted,
-										fontFamily: 'DM Sans, sans-serif',
-									}}
-								>
-									File:{' '}
-									<span style={{ color: COLORS.primary }}>{fileName}</span>
-									<span className="ml-3">
-										• {telemetryData.length.toLocaleString()} data points
-									</span>
-									{selectedSegment !== null && (
-										<span className="ml-3">
-											• Segment{' '}
-											<span style={{ color: SEGMENT_COLORS[selectedSegment] }}>
-												{selectedSegment + 1}
-											</span>{' '}
-											({selectedSegment * 10}% - {(selectedSegment + 1) * 10}%)
-										</span>
-									)}
-								</p>
-							)}
-						</div>
-
-						<div className="flex items-center gap-3">
-							{selectedSegment !== null && (
-								<button
-									onClick={handleBackToFullLap}
-									className="px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider transition-all duration-200 border"
-									style={{
-										borderColor: 'rgba(255, 255, 255, 0.2)',
-										color: COLORS.text,
-										fontFamily: 'DM Sans, sans-serif',
-									}}
-									onMouseEnter={(e) => {
-										e.currentTarget.style.borderColor = COLORS.primary
-										e.currentTarget.style.color = COLORS.primary
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.borderColor =
-											'rgba(255, 255, 255, 0.2)'
-										e.currentTarget.style.color = COLORS.text
-									}}
-								>
-									← Full Lap
-								</button>
-							)}
-							<input
-								type="file"
-								ref={fileInputRef}
-								accept=".csv"
-								onChange={handleFileImport}
-								className="hidden"
-							/>
-							<button
-								onClick={() => fileInputRef.current?.click()}
-								disabled={isLoading}
-								className="px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all duration-200"
-								style={{
-									backgroundColor: COLORS.primary,
-									color: '#000',
-									fontFamily: 'DM Sans, sans-serif',
-								}}
-								onMouseEnter={(e) => {
-									e.currentTarget.style.backgroundColor = COLORS.primaryHover
-									e.currentTarget.style.boxShadow =
-										'0 0 20px rgba(255, 107, 0, 0.4)'
-								}}
-								onMouseLeave={(e) => {
-									e.currentTarget.style.backgroundColor = COLORS.primary
-									e.currentTarget.style.boxShadow = 'none'
-								}}
-							>
-								{isLoading ? 'Loading...' : 'Import CSV'}
-							</button>
-						</div>
+				<header className="flex-shrink-0 p-6 border-b border-white/5 flex items-center justify-between z-20">
+					<div>
+						<button
+							onClick={() => navigate('/telemetry')}
+							className="text-sm text-neutral-400 hover:text-white transition-colors flex items-center gap-2 mb-2"
+							style={{ fontFamily: 'DM Sans, sans-serif' }}
+						>
+							← Back to Sessions
+						</button>
+						<h1
+							className="text-3xl font-black uppercase tracking-wide"
+							style={{
+								fontFamily: 'Bebas Neue, sans-serif',
+								color: COLORS.text,
+							}}
+						>
+							Analyzing Lap {lapNum}
+						</h1>
 					</div>
+					{selectedSegment !== null && (
+						<button
+							onClick={() => setSelectedSegment(null)}
+							className="px-4 py-2 rounded-lg font-bold text-sm uppercase border transition-colors"
+							style={{ borderColor: COLORS.primary, color: COLORS.primary }}
+						>
+							← Full Lap
+						</button>
+					)}
 				</header>
 
-				{/* Content */}
 				<div className="flex-1 flex overflow-hidden">
-					{/* Empty State */}
-					{telemetryData.length === 0 && !isLoading && (
-						<div className="flex-1 flex items-center justify-center p-8">
+					{isLoading && (
+						<div className="flex-1 flex items-center justify-center">
 							<div
-								className="carbon-card rounded-2xl p-16 text-center max-w-md"
-								style={{ border: '1px solid rgba(255, 255, 255, 0.05)' }}
+								className="animate-pulse text-xl font-bold uppercase"
+								style={{ color: COLORS.primary, fontFamily: 'Bebas Neue' }}
 							>
-								<div
-									className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
-									style={{ backgroundColor: 'rgba(255, 107, 0, 0.1)' }}
-								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										fill="none"
-										viewBox="0 0 24 24"
-										strokeWidth={1.5}
-										stroke={COLORS.primary}
-										className="w-10 h-10"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-										/>
-									</svg>
-								</div>
-								<h2
-									className="text-2xl font-black uppercase tracking-wide mb-2"
-									style={{
-										fontFamily: 'Bebas Neue, sans-serif',
-										color: COLORS.text,
-									}}
-								>
-									No Telemetry Data
-								</h2>
-								<p
-									className="text-sm mb-6"
-									style={{
-										color: COLORS.textMuted,
-										fontFamily: 'DM Sans, sans-serif',
-									}}
-								>
-									Import a CSV file to start analyzing your lap data
-								</p>
-								<button
-									onClick={() => fileInputRef.current?.click()}
-									className="px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wider"
-									style={{
-										backgroundColor: COLORS.primary,
-										color: '#000',
-										fontFamily: 'DM Sans, sans-serif',
-									}}
-								>
-									Select CSV File
-								</button>
+								Downloading Telemetry...
 							</div>
 						</div>
 					)}
 
-					{/* Data loaded */}
-					{chartData && trackMapData && (
-						<>
-							{/* LEFT - Charts */}
-							<div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-								{/* Current Values */}
-								<div
-									className="carbon-card rounded-xl p-4 sticky top-0 z-10"
-									style={{
-										border: `1px solid rgba(255, 107, 0, ${currentData ? '0.3' : '0.1'})`,
-									}}
+					{errorMsg && !isLoading && (
+						<div className="flex-1 flex items-center justify-center p-8">
+							<div className="carbon-card border-red-500/30 rounded-2xl p-16 text-center max-w-md">
+								<h2
+									className="text-2xl font-black uppercase tracking-wide mb-2 text-red-500"
+									style={{ fontFamily: 'Bebas Neue' }}
 								>
+									Error Loading Lap
+								</h2>
+								<p className="text-sm text-neutral-400">{errorMsg}</p>
+							</div>
+						</div>
+					)}
+
+					{!isLoading && !errorMsg && chartData && trackMapData && (
+						<>
+							{/* LEWA STRONA - WYKRESY */}
+							<div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+								<div className="carbon-card rounded-xl p-4 sticky top-0 z-10 backdrop-blur-md">
 									<div className="flex flex-wrap gap-6 justify-start">
 										<DataValue
 											label="Distance"
@@ -470,7 +320,6 @@ const TelemetryPage: React.FC = () => {
 									</div>
 								</div>
 
-								{/* Segment Stats (tylko gdy wybrany segment) */}
 								{selectedSegment !== null && (
 									<div
 										className="carbon-card rounded-2xl p-6"
@@ -510,18 +359,11 @@ const TelemetryPage: React.FC = () => {
 									</div>
 								)}
 
-								{/* Speed Chart */}
-								<div
-									className="carbon-card rounded-2xl p-6"
-									style={{ border: '1px solid rgba(255, 255, 255, 0.05)' }}
-								>
-									<div className="flex items-center justify-between mb-4">
+								<div className="carbon-card rounded-2xl p-6">
+									<div className="flex justify-between items-center mb-4">
 										<h3
-											className="text-lg font-black uppercase tracking-wide"
-											style={{
-												fontFamily: 'Bebas Neue, sans-serif',
-												color: COLORS.text,
-											}}
+											className="text-lg font-black uppercase"
+											style={{ fontFamily: 'Bebas Neue', color: COLORS.text }}
 										>
 											Speed
 										</h3>
@@ -548,17 +390,10 @@ const TelemetryPage: React.FC = () => {
 									/>
 								</div>
 
-								{/* Throttle & Brake */}
-								<div
-									className="carbon-card rounded-2xl p-6"
-									style={{ border: '1px solid rgba(255, 255, 255, 0.05)' }}
-								>
+								<div className="carbon-card rounded-2xl p-6">
 									<h3
-										className="text-lg font-black uppercase tracking-wide mb-4"
-										style={{
-											fontFamily: 'Bebas Neue, sans-serif',
-											color: COLORS.text,
-										}}
+										className="text-lg font-black uppercase mb-4"
+										style={{ fontFamily: 'Bebas Neue', color: COLORS.text }}
 									>
 										Throttle & Brake
 									</h3>
@@ -581,18 +416,11 @@ const TelemetryPage: React.FC = () => {
 									/>
 								</div>
 
-								{/* RPM */}
-								<div
-									className="carbon-card rounded-2xl p-6"
-									style={{ border: '1px solid rgba(255, 255, 255, 0.05)' }}
-								>
-									<div className="flex items-center justify-between mb-4">
+								<div className="carbon-card rounded-2xl p-6">
+									<div className="flex justify-between items-center mb-4">
 										<h3
-											className="text-lg font-black uppercase tracking-wide"
-											style={{
-												fontFamily: 'Bebas Neue, sans-serif',
-												color: COLORS.text,
-											}}
+											className="text-lg font-black uppercase"
+											style={{ fontFamily: 'Bebas Neue', color: COLORS.text }}
 										>
 											RPM
 										</h3>
@@ -620,16 +448,10 @@ const TelemetryPage: React.FC = () => {
 								</div>
 							</div>
 
-							{/* RIGHT - Sticky panel */}
-							<div
-								className="w-80 lg:w-96 flex-shrink-0 border-l border-white/5 p-6 flex flex-col gap-4"
-								style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
-							>
-								{/* Gear */}
-								<div
-									className="carbon-card rounded-2xl p-4 text-center"
-									style={{ border: '1px solid rgba(255, 255, 255, 0.05)' }}
-								>
+							{/* PRAWA STRONA - MAPA TORU I BIEGI */}
+							<div className="w-80 lg:w-96 flex-shrink-0 border-l border-white/5 p-6 flex flex-col gap-4 bg-black/30 overflow-y-auto custom-scrollbar">
+								{/* ZWRÓCONY GEAR */}
+								<div className="carbon-card rounded-2xl p-4 text-center">
 									<p
 										className="text-xs uppercase tracking-wider font-semibold mb-1"
 										style={{ color: COLORS.textMuted }}
@@ -640,7 +462,7 @@ const TelemetryPage: React.FC = () => {
 										className="text-6xl font-black"
 										style={{
 											color: currentData ? COLORS.primary : COLORS.textMuted,
-											fontFamily: 'Bebas Neue, sans-serif',
+											fontFamily: 'Bebas Neue',
 										}}
 									>
 										{currentData
@@ -651,11 +473,8 @@ const TelemetryPage: React.FC = () => {
 									</p>
 								</div>
 
-								{/* Steering */}
-								<div
-									className="carbon-card rounded-2xl p-4"
-									style={{ border: '1px solid rgba(255, 255, 255, 0.05)' }}
-								>
+								{/* ZWRÓCONY STEERING */}
+								<div className="carbon-card rounded-2xl p-4">
 									<p
 										className="text-xs uppercase tracking-wider font-semibold mb-3 text-center"
 										style={{ color: COLORS.textMuted }}
@@ -674,75 +493,55 @@ const TelemetryPage: React.FC = () => {
 									</p>
 								</div>
 
-								{/* Track Map with Segments */}
-								<div
-									className="carbon-card rounded-2xl p-4 flex-1"
-									style={{ border: '1px solid rgba(255, 255, 255, 0.05)' }}
-								>
+								{/* ZWRÓCONA MAPA I LEGENDA */}
+								<div className="carbon-card rounded-2xl p-4 flex-1 flex flex-col">
 									<p
-										className="text-xs uppercase tracking-wider font-semibold mb-3 text-center"
+										className="text-xs uppercase font-semibold mb-3 text-center"
 										style={{ color: COLORS.textMuted }}
 									>
 										Track Segments
 									</p>
-									<div className="aspect-square relative">
+									<div className="aspect-square relative w-full mb-3">
 										<svg viewBox="0 0 100 100" className="w-full h-full">
-											{/* Render segments */}
 											{trackMapData.segments.map((segment, i) => {
 												if (segment.points.length < 2) return null
-
-												// Sortuj punkty po lapPct żeby uniknąć przeskoków
 												const sortedPoints = [...segment.points].sort(
 													(a, b) => a.lapPct - b.lapPct
 												)
 
-												// Buduj ścieżkę z przerwami gdzie jest duży skok pozycji
 												const pathParts: string[] = []
 												let currentPath: string[] = []
-
 												for (let j = 0; j < sortedPoints.length; j++) {
 													const curr = sortedPoints[j]
-
-													if (j === 0) {
-														currentPath.push(`M ${curr.x} ${curr.y}`)
-													} else {
+													if (j === 0) currentPath.push(`M ${curr.x} ${curr.y}`)
+													else {
 														const prev = sortedPoints[j - 1]
 														const distance = Math.sqrt(
 															Math.pow(curr.x - prev.x, 2) +
 																Math.pow(curr.y - prev.y, 2)
 														)
-
-														// Jeśli skok > 8 jednostek, zacznij nową ścieżkę
 														if (distance > 8) {
-															if (currentPath.length > 1) {
+															if (currentPath.length > 1)
 																pathParts.push(currentPath.join(' '))
-															}
 															currentPath = [`M ${curr.x} ${curr.y}`]
-														} else {
-															currentPath.push(`L ${curr.x} ${curr.y}`)
-														}
+														} else currentPath.push(`L ${curr.x} ${curr.y}`)
 													}
 												}
-
-												// Dodaj ostatnią część
-												if (currentPath.length > 1) {
+												if (currentPath.length > 1)
 													pathParts.push(currentPath.join(' '))
-												}
 
 												const pathD = pathParts.join(' ')
 												if (!pathD) return null
 
 												const isSelected = selectedSegment === i
-
 												return (
 													<path
-														key={i}
+														key={`seg-path-${i}`}
 														d={pathD}
 														fill="none"
 														stroke={SEGMENT_COLORS[i]}
 														strokeWidth={isSelected ? 4 : 2.5}
 														strokeLinecap="round"
-														strokeLinejoin="round"
 														className="segment-path"
 														style={{
 															opacity:
@@ -752,12 +551,10 @@ const TelemetryPage: React.FC = () => {
 																		? 1
 																		: 0.2,
 														}}
-														onClick={() => handleSegmentClick(i)}
+														onClick={() => setSelectedSegment(i)}
 													/>
 												)
 											})}
-
-											{/* Current position */}
 											{hoverIndex !== null &&
 												trackMapData.points[hoverIndex] && (
 													<>
@@ -779,19 +576,19 @@ const TelemetryPage: React.FC = () => {
 										</svg>
 									</div>
 
-									{/* Segment legend */}
-									<div className="mt-3 grid grid-cols-5 gap-1">
+									{/* ZWRÓCONE CYFERKI SEKTORÓW */}
+									<div className="mt-auto grid grid-cols-5 gap-1">
 										{SEGMENT_COLORS.map((color, i) => (
 											<button
-												key={i}
-												onClick={() => handleSegmentClick(i)}
+												key={`segment-legend-${i}`}
+												onClick={() => setSelectedSegment(i)}
 												className="text-center py-1 rounded transition-all"
 												style={{
 													backgroundColor:
 														selectedSegment === i
 															? `${color}30`
 															: 'transparent',
-													border: `1px solid ${selectedSegment === i ? color : 'transparent'}`,
+													border: `1px solid ${selectedSegment === i ? color : 'rgba(255,255,255,0.05)'}`,
 												}}
 											>
 												<span
@@ -816,23 +613,19 @@ const TelemetryPage: React.FC = () => {
 	)
 }
 
-// === KOMPONENTY ===
-
+// === KOMPONENTY POMOCNICZE WIZUALNE ===
 const DataValue: React.FC<{ label: string; value: string; color?: string }> = ({
 	label,
 	value,
 	color,
 }) => (
 	<div>
-		<p
-			className="text-[10px] uppercase tracking-wider font-semibold mb-1"
-			style={{ color: COLORS.textMuted, fontFamily: 'DM Sans' }}
-		>
+		<p className="text-[10px] uppercase tracking-wider font-semibold mb-1 text-neutral-500 font-sans">
 			{label}
 		</p>
 		<p
-			className="text-base font-bold"
-			style={{ color: color || COLORS.text, fontFamily: 'JetBrains Mono' }}
+			className="text-base font-bold font-mono"
+			style={{ color: color || COLORS.text }}
 		>
 			{value}
 		</p>
@@ -863,6 +656,7 @@ const StatBox: React.FC<{ label: string; value: string; color?: string }> = ({
 	</div>
 )
 
+// ZWRÓCONY KOMPONENT STEERING WHEEL
 const SteeringWheel: React.FC<{ angle: number }> = ({ angle }) => (
 	<div className="relative w-24 h-24 mx-auto">
 		<svg
@@ -961,7 +755,6 @@ const TelemetryChart: React.FC<TelemetryChartProps> = ({
 	const height = 120,
 		width = 1000
 	const valueToY = (v: number) => height - (v / maxValue) * height
-
 	const createPath = (values: number[]) =>
 		values
 			.map(
@@ -969,12 +762,12 @@ const TelemetryChart: React.FC<TelemetryChartProps> = ({
 					`${i === 0 ? 'M' : 'L'} ${(i / (values.length - 1)) * width} ${valueToY(v)}`
 			)
 			.join(' ')
-
 	const createArea = (values: number[]) =>
 		`${createPath(values)} L ${width} ${height} L 0 ${height} Z`
 
-	const id1 = `g1-${Math.random().toString(36).substr(2, 5)}`
-	const id2 = `g2-${Math.random().toString(36).substr(2, 5)}`
+	const rawId = useId().replace(/:/g, '')
+	const id1 = `g1-${rawId}`
+	const id2 = `g2-${rawId}`
 
 	return (
 		<div className="relative">
@@ -985,9 +778,7 @@ const TelemetryChart: React.FC<TelemetryChartProps> = ({
 							className="w-3 h-3 rounded-full"
 							style={{ backgroundColor: color }}
 						/>
-						<span className="text-xs" style={{ color: COLORS.textMuted }}>
-							{labels[0]}
-						</span>
+						<span className="text-xs text-neutral-500">{labels[0]}</span>
 					</div>
 					{labels[1] && color2 && (
 						<div className="flex items-center gap-2">
@@ -995,9 +786,7 @@ const TelemetryChart: React.FC<TelemetryChartProps> = ({
 								className="w-3 h-3 rounded-full"
 								style={{ backgroundColor: color2 }}
 							/>
-							<span className="text-xs" style={{ color: COLORS.textMuted }}>
-								{labels[1]}
-							</span>
+							<span className="text-xs text-neutral-500">{labels[1]}</span>
 						</div>
 					)}
 				</div>
@@ -1075,4 +864,4 @@ const TelemetryChart: React.FC<TelemetryChartProps> = ({
 	)
 }
 
-export default TelemetryPage
+export default TelemetryAnalysisPage

@@ -1,9 +1,8 @@
-// src/pages/login-page.tsx
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import TrackBackground from '../components/Trackbackground.tsx'
+import { useAuthStore } from '../store/authStore'
 
-// === KOLORY PREMIUM IRACING ===
 const COLORS = {
 	primary: '#ff6b00',
 	primaryHover: '#ff8533',
@@ -14,6 +13,9 @@ const COLORS = {
 	danger: '#dc2626',
 }
 
+// Zmień to na adres swojego backendu
+const API_URL = 'http://127.0.0.1:8000/api/auth/login'
+
 const LoginPage: React.FC = () => {
 	const navigate = useNavigate()
 	const [email, setEmail] = useState('')
@@ -21,16 +23,51 @@ const LoginPage: React.FC = () => {
 	const [error, setError] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
 
-	const handleSubmit = (e: React.FormEvent) => {
+	// Pobieramy akcję do zapisu tokenu z naszego stanu
+	const setAuth = useAuthStore((state) => state.setAuth)
+
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
 		setError('')
 		setIsLoading(true)
 
-		// Symulacja logowania
-		setTimeout(() => {
+		try {
+			const response = await fetch(API_URL, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ email, password }),
+			})
+
+			if (response.ok) {
+				const data = await response.json()
+
+				// FastAPI w Twoim kodzie zwraca obiekt z polami "access_token" oraz "user"
+				const token = data.access_token
+				const userData = data.user
+
+				if (token && userData) {
+					setAuth(token, userData) // Zapisujemy token i dane usera w Zustand
+					navigate('/dashboard') // Przekierowanie
+				} else {
+					setError('Otrzymano nieprawidłowe dane z serwera.')
+				}
+			} else if (response.status === 401 || response.status === 400) {
+				setError('Nieprawidłowy email lub hasło.')
+			} else if (response.status === 422) {
+				setError('Błąd walidacji danych. Sprawdź format.')
+			} else {
+				setError('Wystąpił błąd po stronie serwera.')
+			}
+		} catch (err) {
+			console.error('Login error:', err)
+			setError(
+				'Błąd połączenia. Czy backend jest uruchomiony i CORS jest skonfigurowany?'
+			)
+		} finally {
 			setIsLoading(false)
-			navigate('/dashboard')
-		}, 1000)
+		}
 	}
 
 	return (
@@ -101,7 +138,8 @@ const LoginPage: React.FC = () => {
 					style={{
 						backgroundColor: 'rgba(26, 26, 26, 0.95)',
 						border: '1px solid rgba(255, 107, 0, 0.2)',
-						boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.1)',
+						boxShadow:
+							'0 25px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.1)',
 					}}
 				>
 					<h2
@@ -115,12 +153,19 @@ const LoginPage: React.FC = () => {
 					</h2>
 					<p
 						className="text-center mb-8 text-sm"
-						style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+						style={{
+							color: COLORS.textMuted,
+							fontFamily: 'DM Sans, sans-serif',
+						}}
 					>
 						Sign in to continue your racing journey
 					</p>
 
-					<form onSubmit={handleSubmit} className="space-y-5" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+					<form
+						onSubmit={handleSubmit}
+						className="space-y-5"
+						style={{ fontFamily: 'DM Sans, sans-serif' }}
+					>
 						{/* Email */}
 						<div>
 							<label
@@ -177,8 +222,12 @@ const LoginPage: React.FC = () => {
 								to="/forgot-password"
 								className="text-xs font-medium transition-colors duration-200"
 								style={{ color: COLORS.textMuted }}
-								onMouseEnter={(e) => (e.currentTarget.style.color = COLORS.primary)}
-								onMouseLeave={(e) => (e.currentTarget.style.color = COLORS.textMuted)}
+								onMouseEnter={(e) =>
+									(e.currentTarget.style.color = COLORS.primary)
+								}
+								onMouseLeave={(e) =>
+									(e.currentTarget.style.color = COLORS.textMuted)
+								}
 							>
 								Forgot password?
 							</Link>
@@ -211,7 +260,8 @@ const LoginPage: React.FC = () => {
 								letterSpacing: '0.1em',
 							}}
 							onMouseEnter={(e) => {
-								if (!isLoading) e.currentTarget.style.backgroundColor = COLORS.primaryHover
+								if (!isLoading)
+									e.currentTarget.style.backgroundColor = COLORS.primaryHover
 							}}
 							onMouseLeave={(e) => {
 								e.currentTarget.style.backgroundColor = COLORS.primary
@@ -223,18 +273,33 @@ const LoginPage: React.FC = () => {
 
 					{/* Divider */}
 					<div className="flex items-center gap-4 my-8">
-						<div className="flex-1 h-px" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+						<div
+							className="flex-1 h-px"
+							style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+						/>
 						<span
 							className="text-sm uppercase tracking-wider font-medium"
-							style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+							style={{
+								color: COLORS.textMuted,
+								fontFamily: 'DM Sans, sans-serif',
+							}}
 						>
 							or
 						</span>
-						<div className="flex-1 h-px" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+						<div
+							className="flex-1 h-px"
+							style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+						/>
 					</div>
 
 					{/* Register Link */}
-					<p className="text-center text-sm" style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}>
+					<p
+						className="text-center text-sm"
+						style={{
+							fontFamily: 'DM Sans, sans-serif',
+							color: COLORS.textMuted,
+						}}
+					>
 						Don't have an account?{' '}
 						<Link
 							to="/register"
