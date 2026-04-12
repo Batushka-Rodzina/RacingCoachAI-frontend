@@ -1,11 +1,9 @@
-// src/pages/TelemetryAnalysisPage.tsx
 import React, { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import { useAuthStore } from '../store/authStore'
 
-const API_URL = 'http://127.0.0.1:8000/sessions'
-
+const API_URL = 'http://127.0.0.1:8000'
 const COLORS = {
 	primary: '#ff6b00',
 	primaryHover: '#ff8533',
@@ -50,16 +48,56 @@ interface TelemetryData {
 	PositionType: number
 }
 
+interface CornerDef {
+	name: string
+	entry_pct: number
+	apex_pct: number
+	exit_pct: number
+	margin: number
+}
+
 const cssStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
   .carbon-bg { background-color: #0a0a0a; background-image: linear-gradient(45deg, #0f0f0f 25%, transparent 25%), linear-gradient(-45deg, #0f0f0f 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #0f0f0f 75%), linear-gradient(-45deg, transparent 75%, #0f0f0f 75%); background-size: 4px 4px; }
   .carbon-card { background-color: rgba(26, 26, 26, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); }
   .custom-scrollbar::-webkit-scrollbar { width: 6px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
   .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 107, 0, 0.3); border-radius: 3px; }
-  .segment-path { cursor: pointer; transition: opacity 0.2s, stroke-width 0.2s; }
-  .segment-path:hover { opacity: 1 !important; stroke-width: 4px; }
+  
+  /* Animacje AI */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-fade-up { animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }
+  .ai-scanner { position: relative; overflow: hidden; }
+  .ai-scanner::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to bottom, transparent, rgba(168, 85, 247, 0.2), transparent); animation: scanline 2s linear infinite; pointer-events: none; }
+  .ai-card-mistake { border: 1px solid rgba(244, 63, 94, 0.2); background: linear-gradient(180deg, rgba(244, 63, 94, 0.05) 0%, transparent 100%); box-shadow: inset 0 1px 0 rgba(244,63,94,0.1); }
+  .ai-card-fix { border: 1px solid rgba(16, 185, 129, 0.2); background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%); box-shadow: inset 0 1px 0 rgba(16,185,129,0.1); }
 `
+
+const parseAIText = (rawText: string) => {
+	const clean = rawText.replace(
+		/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
+		''
+	)
+	const mistakeMatch = clean.match(
+		/Mistake Analysis:([\s\S]*?)(?=Correction:|$)/i
+	)
+	const correctionMatch = clean.match(/Correction:([\s\S]*)$/i)
+	return {
+		mistakes: mistakeMatch
+			? mistakeMatch[1]
+					.trim()
+					.split('\n')
+					.filter((l) => l.trim().length > 0)
+			: [clean],
+		corrections: correctionMatch
+			? correctionMatch[1]
+					.trim()
+					.split('\n')
+					.filter((l) => l.trim().length > 0)
+			: [],
+	}
+}
 
 const TelemetryAnalysisPage: React.FC = () => {
 	const { sessionId, lapNum } = useParams<{
@@ -70,11 +108,18 @@ const TelemetryAnalysisPage: React.FC = () => {
 	const token = useAuthStore((state) => state.token)
 
 	const [telemetryData, setTelemetryData] = useState<TelemetryData[]>([])
+	const [corners, setCorners] = useState<CornerDef[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
 	const [hoverIndex, setHoverIndex] = useState<number | null>(null)
-	const [selectedSegment, setSelectedSegment] = useState<number | null>(null)
+	const [selectedCornerName, setSelectedCornerName] = useState<string | null>(
+		null
+	)
+
+	// AI State & Cache
+	const [isAiLoading, setIsAiLoading] = useState(false)
+	const [aiCache, setAiCache] = useState<Record<string, any>>({})
 
 	const parseCSV = useCallback((text: string): TelemetryData[] => {
 		const lines = text.trim().split('\n')
@@ -84,25 +129,25 @@ const TelemetryAnalysisPage: React.FC = () => {
 		return lines.slice(1).map((line) => {
 			const values = line.split(',')
 			const obj: Record<string, number | boolean> = {}
-
 			headers.forEach((header, i) => {
 				const cleanHeader = header.trim()
 				const value = values[i]
-				if (cleanHeader === 'ABSActive' || cleanHeader === 'DRSActive') {
+				if (cleanHeader === 'ABSActive' || cleanHeader === 'DRSActive')
 					obj[cleanHeader] = value.toLowerCase() === 'true'
-				} else {
-					obj[cleanHeader] = parseFloat(value) || 0
-				}
+				else obj[cleanHeader] = parseFloat(value) || 0
 			})
 			return obj as unknown as TelemetryData
 		})
 	}, [])
 
 	useEffect(() => {
-		const fetchLapData = async () => {
+		const fetchData = async () => {
 			setIsLoading(true)
 			try {
-				const sesRes = await fetch(`${API_URL}/${sessionId}`, {
+				const cornersRes = await fetch(`${API_URL}/analysis/tracks/spa/corners`)
+				if (cornersRes.ok) setCorners((await cornersRes.json()).corners)
+
+				const sesRes = await fetch(`${API_URL}/sessions/${sessionId}`, {
 					headers: { Authorization: `Bearer ${token}` },
 				})
 				if (!sesRes.ok) throw new Error('Session not found')
@@ -121,8 +166,7 @@ const TelemetryAnalysisPage: React.FC = () => {
 						headers: { 'Content-Type': 'text/csv' },
 					}
 				)
-				if (!csvRes.ok)
-					throw new Error('Failed to load telemetry from S3. Check AWS CORS.')
+				if (!csvRes.ok) throw new Error('Failed to load telemetry from AWS S3.')
 
 				const csvText = await csvRes.text()
 				setTelemetryData(parseCSV(csvText))
@@ -133,9 +177,44 @@ const TelemetryAnalysisPage: React.FC = () => {
 				setIsLoading(false)
 			}
 		}
-
-		if (sessionId && lapNum && token) fetchLapData()
+		if (sessionId && lapNum && token) fetchData()
 	}, [sessionId, lapNum, token, parseCSV])
+
+	const handleAnalyzeAI = async () => {
+		if (!selectedCornerName || aiCache[selectedCornerName]) return
+		setIsAiLoading(true)
+		try {
+			const res = await fetch(
+				`${API_URL}/analysis/sessions/${sessionId}/laps/${lapNum}/analyze`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${token}`,
+					},
+					body: JSON.stringify({ corner_name: selectedCornerName }),
+				}
+			)
+			const data = await res.json()
+			setAiCache((prev) => ({
+				...prev,
+				[selectedCornerName]: {
+					...data,
+					parsedFeedback: parseAIText(data.feedback),
+				},
+			}))
+		} catch (e) {
+			console.error(e)
+		} finally {
+			setIsAiLoading(false)
+		}
+	}
+
+	// --- OBLICZENIA WIZUALNE I MAPA ---
+	const selectedCornerDef = useMemo(
+		() => corners.find((c) => c.name === selectedCornerName) || null,
+		[selectedCornerName, corners]
+	)
 
 	const trackMapData = useMemo(() => {
 		if (telemetryData.length === 0) return null
@@ -147,35 +226,26 @@ const TelemetryAnalysisPage: React.FC = () => {
 			maxLon = Math.max(...lons)
 		const padding = 10
 
-		const normalizedPoints = telemetryData.map((d, i) => ({
+		const normalizedPoints = telemetryData.map((d) => ({
 			x: padding + ((d.Lon - minLon) / (maxLon - minLon)) * (100 - 2 * padding),
 			y: padding + ((maxLat - d.Lat) / (maxLat - minLat)) * (100 - 2 * padding),
-			segment: Math.min(Math.floor(d.LapDistPct * 10), 9),
-			index: i,
 			lapPct: d.LapDistPct,
 		}))
-
-		const segments = Array.from({ length: 10 }, (_, i) => ({
-			points: normalizedPoints.filter((p) => p.segment === i),
-			startPct: i * 10,
-			endPct: (i + 1) * 10,
-		}))
-
-		return { points: normalizedPoints, segments }
+		return { points: normalizedPoints }
 	}, [telemetryData])
 
 	const filteredData = useMemo(() => {
-		if (selectedSegment === null) return { data: telemetryData, startIndex: 0 }
-		const segmentStart = selectedSegment / 10,
-			segmentEnd = (selectedSegment + 1) / 10
+		if (!selectedCornerDef) return { data: telemetryData, startIndex: 0 }
+		const start = selectedCornerDef.entry_pct - selectedCornerDef.margin
+		const end = selectedCornerDef.exit_pct + selectedCornerDef.margin
 		const filtered = telemetryData.filter(
-			(d) => d.LapDistPct >= segmentStart && d.LapDistPct < segmentEnd
+			(d) => d.LapDistPct >= start && d.LapDistPct <= end
 		)
 		const startIndex = telemetryData.findIndex(
-			(d) => d.LapDistPct >= segmentStart && d.LapDistPct < segmentEnd
+			(d) => d.LapDistPct >= start && d.LapDistPct <= end
 		)
 		return { data: filtered, startIndex: Math.max(0, startIndex) }
-	}, [telemetryData, selectedSegment])
+	}, [telemetryData, selectedCornerDef])
 
 	const chartData = useMemo(() => {
 		if (filteredData.data.length === 0) return null
@@ -207,9 +277,7 @@ const TelemetryAnalysisPage: React.FC = () => {
 		[filteredData.startIndex]
 	)
 
-	const handleChartLeave = useCallback(() => {
-		setHoverIndex(null)
-	}, [])
+	const handleChartLeave = useCallback(() => setHoverIndex(null), [])
 
 	const currentData =
 		hoverIndex !== null && telemetryData[hoverIndex]
@@ -225,140 +293,244 @@ const TelemetryAnalysisPage: React.FC = () => {
 				}
 			: null
 
+	const currentAiData = selectedCornerName ? aiCache[selectedCornerName] : null
+
 	return (
-		<div className="flex min-h-screen bg-neutral-950 text-white overflow-hidden">
+		<div className="flex min-h-screen bg-neutral-950 text-white overflow-hidden carbon-bg">
 			<style dangerouslySetInnerHTML={{ __html: cssStyles }} />
 			<Sidebar activeTab="telemetry" />
 
-			<div className="flex-1 flex flex-col carbon-bg">
-				<header className="flex-shrink-0 p-6 border-b border-white/5 flex items-center justify-between z-20">
+			<div className="flex-1 flex flex-col overflow-hidden">
+				<header className="p-6 border-b border-white/5 flex justify-between items-center bg-black/40 backdrop-blur-md z-10">
 					<div>
 						<button
 							onClick={() => navigate('/telemetry')}
-							className="text-sm text-neutral-400 hover:text-white transition-colors flex items-center gap-2 mb-2"
-							style={{ fontFamily: 'DM Sans, sans-serif' }}
+							className="text-xs text-neutral-500 hover:text-white transition-colors mb-1 font-bold tracking-widest"
 						>
-							← Back to Sessions
+							← BACK TO SESSIONS
 						</button>
 						<h1
 							className="text-3xl font-black uppercase tracking-wide"
-							style={{
-								fontFamily: 'Bebas Neue, sans-serif',
-								color: COLORS.text,
-							}}
+							style={{ fontFamily: 'Bebas Neue' }}
 						>
-							Analyzing Lap {lapNum}
+							Lap Analysis <span className="text-primary">#{lapNum}</span>
 						</h1>
 					</div>
-					{selectedSegment !== null && (
+					{selectedCornerName && (
 						<button
-							onClick={() => setSelectedSegment(null)}
-							className="px-4 py-2 rounded-lg font-bold text-sm uppercase border transition-colors"
-							style={{ borderColor: COLORS.primary, color: COLORS.primary }}
+							onClick={() => setSelectedCornerName(null)}
+							className="px-6 py-2 border border-primary/50 hover:bg-primary/10 text-primary rounded-lg text-xs font-bold uppercase transition-all"
 						>
-							← Full Lap
+							Close AI View
 						</button>
 					)}
 				</header>
 
-				<div className="flex-1 flex overflow-hidden">
+				<div className="flex-1 flex overflow-hidden relative">
 					{isLoading && (
-						<div className="flex-1 flex items-center justify-center">
+						<div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
 							<div
-								className="animate-pulse text-xl font-bold uppercase"
-								style={{ color: COLORS.primary, fontFamily: 'Bebas Neue' }}
+								className="animate-pulse text-xl font-bold uppercase tracking-widest text-primary"
+								style={{ fontFamily: 'Bebas Neue' }}
 							>
-								Downloading Telemetry...
+								Fetching Telemetry Stream...
 							</div>
 						</div>
 					)}
 
-					{errorMsg && !isLoading && (
-						<div className="flex-1 flex items-center justify-center p-8">
-							<div className="carbon-card border-red-500/30 rounded-2xl p-16 text-center max-w-md">
-								<h2
-									className="text-2xl font-black uppercase tracking-wide mb-2 text-red-500"
-									style={{ fontFamily: 'Bebas Neue' }}
-								>
-									Error Loading Lap
-								</h2>
-								<p className="text-sm text-neutral-400">{errorMsg}</p>
+					{/* LEWA STRONA - AI I WYKRESY */}
+					<div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+						{/* HUD / DATA VALUES */}
+						<div className="carbon-card rounded-xl p-4 sticky top-0 z-10 backdrop-blur-md">
+							<div className="flex flex-wrap gap-6 justify-start">
+								<DataValue
+									label="Distance"
+									value={currentData ? `${currentData.lapPct}%` : '—'}
+								/>
+								<DataValue
+									label="Speed"
+									value={currentData ? `${currentData.speed} km/h` : '—'}
+									color={COLORS.speed}
+								/>
+								<DataValue
+									label="RPM"
+									value={currentData ? currentData.rpm : '—'}
+									color={COLORS.rpm}
+								/>
+								<DataValue
+									label="Throttle"
+									value={currentData ? `${currentData.throttle}%` : '—'}
+									color={COLORS.throttle}
+								/>
+								<DataValue
+									label="Brake"
+									value={currentData ? `${currentData.brake}%` : '—'}
+									color={COLORS.brake}
+								/>
 							</div>
 						</div>
-					)}
 
-					{!isLoading && !errorMsg && chartData && trackMapData && (
-						<>
-							{/* LEWA STRONA - WYKRESY */}
-							<div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-								<div className="carbon-card rounded-xl p-4 sticky top-0 z-10 backdrop-blur-md">
-									<div className="flex flex-wrap gap-6 justify-start">
-										<DataValue
-											label="Distance"
-											value={currentData ? `${currentData.lapPct}%` : '—'}
-										/>
-										<DataValue
-											label="Speed"
-											value={currentData ? `${currentData.speed} km/h` : '—'}
-											color={COLORS.speed}
-										/>
-										<DataValue
-											label="RPM"
-											value={currentData ? currentData.rpm : '—'}
-											color={COLORS.rpm}
-										/>
-										<DataValue
-											label="Throttle"
-											value={currentData ? `${currentData.throttle}%` : '—'}
-											color={COLORS.throttle}
-										/>
-										<DataValue
-											label="Brake"
-											value={currentData ? `${currentData.brake}%` : '—'}
-											color={COLORS.brake}
-										/>
+						{/* POTĘŻNY PANEL AI */}
+						{selectedCornerName && (
+							<div className="rounded-2xl overflow-hidden bg-neutral-900/80 border border-purple-500/20 shadow-[0_0_30px_rgba(168,85,247,0.05)] backdrop-blur-xl animate-fade-up">
+								<div className="p-5 flex justify-between items-center border-b border-white/5 relative overflow-hidden">
+									<div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50"></div>
+									<div>
+										<h3
+											className="text-2xl font-black uppercase tracking-wider flex items-center gap-3"
+											style={{ fontFamily: 'Bebas Neue' }}
+										>
+											<span className="text-purple-400 animate-pulse">●</span>{' '}
+											RACE_COACH_AI
+										</h3>
+										<p className="text-xs text-neutral-400 font-mono mt-1">
+											Target Segment: {selectedCornerName}
+										</p>
 									</div>
+									{!currentAiData && !isAiLoading && (
+										<button
+											onClick={handleAnalyzeAI}
+											className="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.6)]"
+										>
+											Initialize Analysis
+										</button>
+									)}
 								</div>
 
-								{selectedSegment !== null && (
-									<div
-										className="carbon-card rounded-2xl p-6"
-										style={{
-											border: `2px solid ${SEGMENT_COLORS[selectedSegment]}40`,
-										}}
-									>
-										<h3
-											className="text-lg font-black uppercase tracking-wide mb-4"
-											style={{
-												fontFamily: 'Bebas Neue, sans-serif',
-												color: SEGMENT_COLORS[selectedSegment],
-											}}
-										>
-											Segment {selectedSegment + 1} Analysis
-										</h3>
-										<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-											<StatBox
-												label="Max Speed"
-												value={`${chartData.maxSpeed.toFixed(1)} km/h`}
-											/>
-											<StatBox
-												label="Min Speed"
-												value={`${chartData.minSpeed.toFixed(1)} km/h`}
-											/>
-											<StatBox
-												label="Avg Throttle"
-												value={`${chartData.avgThrottle.toFixed(0)}%`}
-												color={COLORS.throttle}
-											/>
-											<StatBox
-												label="Avg Brake"
-												value={`${chartData.avgBrake.toFixed(0)}%`}
-												color={COLORS.brake}
-											/>
+								{isAiLoading && (
+									<div className="p-10 text-center ai-scanner">
+										<div className="text-purple-400 mb-4 animate-spin inline-block text-3xl">
+											⚙
 										</div>
+										<p className="font-mono text-xs uppercase tracking-widest text-purple-400">
+											Processing telemetry stream...
+										</p>
 									</div>
 								)}
 
+								{currentAiData && !isAiLoading && (
+									<div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-8">
+										{/* LEWA KOLUMNA - METRYKI */}
+										<div>
+											<p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-4">
+												Telemetry Delta
+											</p>
+											<div className="bg-black/40 rounded-xl border border-white/5 overflow-hidden">
+												<table className="w-full text-left text-xs font-mono">
+													<thead>
+														<tr className="bg-white/5 text-neutral-400">
+															<th className="py-3 px-4 font-normal">Metric</th>
+															<th className="py-3 px-4 font-normal text-right">
+																You
+															</th>
+															<th className="py-3 px-4 font-normal text-right">
+																Pro
+															</th>
+															<th className="py-3 px-4 font-normal text-right">
+																Delta
+															</th>
+														</tr>
+													</thead>
+													<tbody className="divide-y divide-white/5">
+														<ComparisonRow
+															label="Entry Spd"
+															val1={currentAiData.drv_metrics?.entry_speed}
+															val2={currentAiData.ref_metrics?.entry_speed}
+															unit="km/h"
+															inverse={false}
+														/>
+														<ComparisonRow
+															label="Min Spd"
+															val1={currentAiData.drv_metrics?.min_speed}
+															val2={currentAiData.ref_metrics?.min_speed}
+															unit="km/h"
+															inverse={false}
+														/>
+														<ComparisonRow
+															label="Apex Throt"
+															val1={currentAiData.drv_metrics?.apex_throttle}
+															val2={currentAiData.ref_metrics?.apex_throttle}
+															unit="%"
+															inverse={false}
+														/>
+														<ComparisonRow
+															label="Exit Spd"
+															val1={currentAiData.drv_metrics?.exit_speed}
+															val2={currentAiData.ref_metrics?.exit_speed}
+															unit="km/h"
+															inverse={false}
+														/>
+													</tbody>
+												</table>
+											</div>
+										</div>
+
+										{/* PRAWA KOLUMNA - ROZDZIELONY TEKST AI */}
+										<div className="space-y-4">
+											{currentAiData.parsedFeedback.mistakes.length > 0 && (
+												<div className="ai-card-mistake rounded-xl p-5">
+													<p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+														<span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>{' '}
+														Identified Mistakes
+													</p>
+													<ul className="space-y-2">
+														{currentAiData.parsedFeedback.mistakes.map(
+															(line: string, i: number) => {
+																const text = line.replace(/^-/, '').trim()
+																if (!text) return null
+																return (
+																	<li
+																		key={i}
+																		className="text-sm text-neutral-300 font-sans leading-relaxed flex gap-2"
+																	>
+																		<span className="text-rose-500/50 mt-0.5">
+																			›
+																		</span>{' '}
+																		{text}
+																	</li>
+																)
+															}
+														)}
+													</ul>
+												</div>
+											)}
+
+											{currentAiData.parsedFeedback.corrections.length > 0 && (
+												<div className="ai-card-fix rounded-xl p-5">
+													<p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+														<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>{' '}
+														Actionable Corrections
+													</p>
+													<ul className="space-y-2">
+														{currentAiData.parsedFeedback.corrections.map(
+															(line: string, i: number) => {
+																const text = line.replace(/^-/, '').trim()
+																if (!text) return null
+																return (
+																	<li
+																		key={i}
+																		className="text-sm text-white font-sans font-medium leading-relaxed flex gap-2"
+																	>
+																		<span className="text-emerald-500 mt-0.5">
+																			✓
+																		</span>{' '}
+																		{text}
+																	</li>
+																)
+															}
+														)}
+													</ul>
+												</div>
+											)}
+										</div>
+									</div>
+								)}
+							</div>
+						)}
+
+						{/* ZWRÓCONE WYKRESY */}
+						{chartData && (
+							<>
 								<div className="carbon-card rounded-2xl p-6">
 									<div className="flex justify-between items-center mb-4">
 										<h3
@@ -446,167 +618,200 @@ const TelemetryAnalysisPage: React.FC = () => {
 										onLeave={handleChartLeave}
 									/>
 								</div>
+							</>
+						)}
+					</div>
+
+					{/* PRAWA STRONA - NAWIGACJA PO TORZE */}
+					<div className="w-80 bg-black/60 border-l border-white/5 p-6 flex flex-col gap-6 relative z-10 shadow-[-10px_0_30px_rgba(0,0,0,0.5)]">
+						{/* ZWRÓCONY GEAR I STEERING */}
+						<div className="flex gap-4">
+							<div className="carbon-card rounded-2xl p-4 text-center flex-1">
+								<p
+									className="text-[10px] uppercase tracking-wider font-semibold mb-1"
+									style={{ color: COLORS.textMuted }}
+								>
+									Gear
+								</p>
+								<p
+									className="text-4xl font-black"
+									style={{
+										color: currentData ? COLORS.primary : COLORS.textMuted,
+										fontFamily: 'Bebas Neue',
+									}}
+								>
+									{currentData
+										? currentData.gear === 0
+											? 'N'
+											: currentData.gear
+										: '-'}
+								</p>
 							</div>
-
-							{/* PRAWA STRONA - MAPA TORU I BIEGI */}
-							<div className="w-80 lg:w-96 flex-shrink-0 border-l border-white/5 p-6 flex flex-col gap-4 bg-black/30 overflow-y-auto custom-scrollbar">
-								{/* ZWRÓCONY GEAR */}
-								<div className="carbon-card rounded-2xl p-4 text-center">
-									<p
-										className="text-xs uppercase tracking-wider font-semibold mb-1"
-										style={{ color: COLORS.textMuted }}
-									>
-										Gear
-									</p>
-									<p
-										className="text-6xl font-black"
-										style={{
-											color: currentData ? COLORS.primary : COLORS.textMuted,
-											fontFamily: 'Bebas Neue',
-										}}
-									>
-										{currentData
-											? currentData.gear === 0
-												? 'N'
-												: currentData.gear
-											: '-'}
-									</p>
-								</div>
-
-								{/* ZWRÓCONY STEERING */}
-								<div className="carbon-card rounded-2xl p-4">
-									<p
-										className="text-xs uppercase tracking-wider font-semibold mb-3 text-center"
-										style={{ color: COLORS.textMuted }}
-									>
-										Steering
-									</p>
+							<div className="carbon-card rounded-2xl p-2 flex-1 flex flex-col items-center justify-center overflow-hidden">
+								<p
+									className="text-[10px] uppercase tracking-wider font-semibold mb-1"
+									style={{ color: COLORS.textMuted }}
+								>
+									Steering
+								</p>
+								<div className="scale-75 origin-top mt-1">
 									<SteeringWheel angle={currentData?.steering ?? 0} />
-									<p
-										className="text-center mt-3 text-base font-bold"
-										style={{
-											color: currentData ? COLORS.text : COLORS.textMuted,
-											fontFamily: 'JetBrains Mono, monospace',
-										}}
-									>
-										{currentData ? `${currentData.steering.toFixed(1)}°` : '-'}
-									</p>
-								</div>
-
-								{/* ZWRÓCONA MAPA I LEGENDA */}
-								<div className="carbon-card rounded-2xl p-4 flex-1 flex flex-col">
-									<p
-										className="text-xs uppercase font-semibold mb-3 text-center"
-										style={{ color: COLORS.textMuted }}
-									>
-										Track Segments
-									</p>
-									<div className="aspect-square relative w-full mb-3">
-										<svg viewBox="0 0 100 100" className="w-full h-full">
-											{trackMapData.segments.map((segment, i) => {
-												if (segment.points.length < 2) return null
-												const sortedPoints = [...segment.points].sort(
-													(a, b) => a.lapPct - b.lapPct
-												)
-
-												const pathParts: string[] = []
-												let currentPath: string[] = []
-												for (let j = 0; j < sortedPoints.length; j++) {
-													const curr = sortedPoints[j]
-													if (j === 0) currentPath.push(`M ${curr.x} ${curr.y}`)
-													else {
-														const prev = sortedPoints[j - 1]
-														const distance = Math.sqrt(
-															Math.pow(curr.x - prev.x, 2) +
-																Math.pow(curr.y - prev.y, 2)
-														)
-														if (distance > 8) {
-															if (currentPath.length > 1)
-																pathParts.push(currentPath.join(' '))
-															currentPath = [`M ${curr.x} ${curr.y}`]
-														} else currentPath.push(`L ${curr.x} ${curr.y}`)
-													}
-												}
-												if (currentPath.length > 1)
-													pathParts.push(currentPath.join(' '))
-
-												const pathD = pathParts.join(' ')
-												if (!pathD) return null
-
-												const isSelected = selectedSegment === i
-												return (
-													<path
-														key={`seg-path-${i}`}
-														d={pathD}
-														fill="none"
-														stroke={SEGMENT_COLORS[i]}
-														strokeWidth={isSelected ? 4 : 2.5}
-														strokeLinecap="round"
-														className="segment-path"
-														style={{
-															opacity:
-																selectedSegment === null
-																	? 0.7
-																	: isSelected
-																		? 1
-																		: 0.2,
-														}}
-														onClick={() => setSelectedSegment(i)}
-													/>
-												)
-											})}
-											{hoverIndex !== null &&
-												trackMapData.points[hoverIndex] && (
-													<>
-														<circle
-															cx={trackMapData.points[hoverIndex].x}
-															cy={trackMapData.points[hoverIndex].y}
-															r="5"
-															fill={COLORS.primary}
-															opacity="0.4"
-														/>
-														<circle
-															cx={trackMapData.points[hoverIndex].x}
-															cy={trackMapData.points[hoverIndex].y}
-															r="2.5"
-															fill={COLORS.primary}
-														/>
-													</>
-												)}
-										</svg>
-									</div>
-
-									{/* ZWRÓCONE CYFERKI SEKTORÓW */}
-									<div className="mt-auto grid grid-cols-5 gap-1">
-										{SEGMENT_COLORS.map((color, i) => (
-											<button
-												key={`segment-legend-${i}`}
-												onClick={() => setSelectedSegment(i)}
-												className="text-center py-1 rounded transition-all"
-												style={{
-													backgroundColor:
-														selectedSegment === i
-															? `${color}30`
-															: 'transparent',
-													border: `1px solid ${selectedSegment === i ? color : 'rgba(255,255,255,0.05)'}`,
-												}}
-											>
-												<span
-													className="text-[10px] font-bold"
-													style={{
-														color:
-															selectedSegment === i ? color : COLORS.textMuted,
-													}}
-												>
-													{i + 1}
-												</span>
-											</button>
-										))}
-									</div>
 								</div>
 							</div>
-						</>
-					)}
+						</div>
+
+						{/* ZWRÓCONA DYNAMICZNA MAPA TORU Z GPS */}
+						<div className="aspect-square bg-neutral-900/80 rounded-2xl border border-white/5 p-4 relative shadow-inner">
+							<p className="absolute top-4 w-full left-0 text-center text-[10px] font-bold text-neutral-500 uppercase tracking-widest z-10">
+								Spa-Francorchamps
+							</p>
+							{trackMapData && (
+								<svg
+									viewBox="0 0 100 100"
+									className="w-full h-full relative z-0"
+								>
+									{/* Główna linia toru */}
+									<path
+										d={trackMapData.points
+											.map((p, j) => `${j === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
+											.join(' ')}
+										fill="none"
+										stroke="rgba(255,255,255,0.15)"
+										strokeWidth="2.5"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									/>
+
+									{/* Pokolorowane zakręty z bazy */}
+									{corners.map((corner, i) => {
+										const cornerPoints = trackMapData.points.filter(
+											(p) =>
+												p.lapPct >= corner.entry_pct &&
+												p.lapPct <= corner.exit_pct
+										)
+										if (cornerPoints.length < 2) return null
+
+										const pathParts: string[] = []
+										let currentPath: string[] = []
+										for (let j = 0; j < cornerPoints.length; j++) {
+											const curr = cornerPoints[j]
+											if (j === 0) currentPath.push(`M ${curr.x} ${curr.y}`)
+											else {
+												const prev = cornerPoints[j - 1]
+												const distance = Math.sqrt(
+													Math.pow(curr.x - prev.x, 2) +
+														Math.pow(curr.y - prev.y, 2)
+												)
+												if (distance > 8) {
+													if (currentPath.length > 1)
+														pathParts.push(currentPath.join(' '))
+													currentPath = [`M ${curr.x} ${curr.y}`]
+												} else currentPath.push(`L ${curr.x} ${curr.y}`)
+											}
+										}
+										if (currentPath.length > 1)
+											pathParts.push(currentPath.join(' '))
+										const pathD = pathParts.join(' ')
+										if (!pathD) return null
+
+										const isSelected = selectedCornerName === corner.name
+										const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length]
+
+										return (
+											<path
+												key={`corner-path-${i}`}
+												d={pathD}
+												fill="none"
+												stroke={color}
+												strokeWidth={isSelected ? 5 : 3}
+												strokeLinecap="round"
+												className="segment-path"
+												style={{
+													opacity:
+														selectedCornerName === null
+															? 0.8
+															: isSelected
+																? 1
+																: 0.2,
+													filter: isSelected
+														? `drop-shadow(0 0 4px ${color})`
+														: 'none',
+												}}
+												onClick={() => setSelectedCornerName(corner.name)}
+											/>
+										)
+									})}
+
+									{/* Kursor bieżącej pozycji */}
+									{hoverIndex !== null && trackMapData.points[hoverIndex] && (
+										<>
+											<circle
+												cx={trackMapData.points[hoverIndex].x}
+												cy={trackMapData.points[hoverIndex].y}
+												r="5"
+												fill={COLORS.primary}
+												opacity="0.4"
+											/>
+											<circle
+												cx={trackMapData.points[hoverIndex].x}
+												cy={trackMapData.points[hoverIndex].y}
+												r="2.5"
+												fill={COLORS.primary}
+											/>
+										</>
+									)}
+								</svg>
+							)}
+						</div>
+
+						<div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar pr-2">
+							<p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1 sticky top-0 bg-black/60 py-2 backdrop-blur-md">
+								Sector Navigation
+							</p>
+							{corners.map((c, i) => {
+								const isSelected = selectedCornerName === c.name
+								const isCached = !!aiCache[c.name]
+								const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length]
+
+								return (
+									<button
+										key={c.name}
+										onClick={() => setSelectedCornerName(c.name)}
+										className={`w-full text-left p-4 rounded-xl text-xs font-bold transition-all border flex justify-between items-center group
+                    ${isSelected ? 'bg-white/10 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+										style={{
+											borderColor: isSelected
+												? color
+												: 'rgba(255,255,255,0.05)',
+											borderLeft: `4px solid ${color}`,
+										}}
+									>
+										<div>
+											<span
+												className={`mr-2 ${isSelected ? 'text-white' : 'opacity-40'}`}
+											>
+												{i + 1}
+											</span>
+											<span
+												className={
+													isSelected
+														? 'text-white'
+														: 'text-neutral-400 group-hover:text-white'
+												}
+											>
+												{c.name}
+											</span>
+										</div>
+										{isCached && (
+											<span className="text-[8px] uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
+												Analyzed
+											</span>
+										)}
+									</button>
+								)
+							})}
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -632,31 +837,42 @@ const DataValue: React.FC<{ label: string; value: string; color?: string }> = ({
 	</div>
 )
 
-const StatBox: React.FC<{ label: string; value: string; color?: string }> = ({
-	label,
-	value,
-	color,
-}) => (
-	<div
-		className="p-3 rounded-xl text-center"
-		style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
-	>
-		<p
-			className="text-[10px] uppercase tracking-wider font-semibold mb-1"
-			style={{ color: COLORS.textMuted }}
-		>
-			{label}
-		</p>
-		<p
-			className="text-lg font-bold"
-			style={{ color: color || COLORS.text, fontFamily: 'JetBrains Mono' }}
-		>
-			{value}
-		</p>
-	</div>
-)
+const ComparisonRow: React.FC<{
+	label: string
+	val1: number
+	val2: number
+	unit: string
+	inverse: boolean
+}> = ({ label, val1, val2, unit, inverse }) => {
+	const delta = (val1 || 0) - (val2 || 0)
+	const isPositive = delta > 0
+	const isGood = (isPositive && !inverse) || (!isPositive && inverse)
+	const color =
+		Math.abs(delta) < 0.1
+			? 'text-neutral-500'
+			: isGood
+				? 'text-emerald-400'
+				: 'text-rose-400'
 
-// ZWRÓCONY KOMPONENT STEERING WHEEL
+	return (
+		<tr className="group hover:bg-white/5 transition-colors">
+			<td className="py-3 px-4 text-neutral-400 group-hover:text-white transition-colors">
+				{label}
+			</td>
+			<td className="py-3 px-4 text-right text-white">
+				{val1?.toFixed(1)} {unit}
+			</td>
+			<td className="py-3 px-4 text-right text-neutral-500">
+				{val2?.toFixed(1)} {unit}
+			</td>
+			<td className={`py-3 px-4 text-right font-bold ${color}`}>
+				{delta > 0 ? '+' : ''}
+				{delta.toFixed(1)}
+			</td>
+		</tr>
+	)
+}
+
 const SteeringWheel: React.FC<{ angle: number }> = ({ angle }) => (
 	<div className="relative w-24 h-24 mx-auto">
 		<svg
