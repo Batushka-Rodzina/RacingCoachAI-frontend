@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+
 // 1. Definiujemy, jak wygląda nasz użytkownik z API
 export interface User {
 	id: number
@@ -14,15 +16,16 @@ interface AuthState {
 	token: string | null
 	user: User | null
 	isAuthenticated: boolean
-	setAuth: (token: string, user: User) => void // Zmieniona nazwa akcji
+	setAuth: (token: string, user: User) => void
 	logout: () => void
+	refreshAccessToken: () => Promise<string | null>
 }
 
 export const useAuthStore = create<AuthState>()(
 	persist(
-		(set) => ({
+		(set, get) => ({
 			token: null,
-			user: null, // Domyślnie brak usera
+			user: null,
 			isAuthenticated: false,
 
 			// Akcja logowania - zapisuje token ORAZ dane użytkownika
@@ -31,6 +34,35 @@ export const useAuthStore = create<AuthState>()(
 
 			// Akcja wylogowania - czyści wszystko
 			logout: () => set({ token: null, user: null, isAuthenticated: false }),
+
+			// Odświeżanie access tokenu przez refresh_token cookie
+			refreshAccessToken: async () => {
+				try {
+					const res = await fetch(`${BASE_URL}/api/auth/refresh-token`, {
+						method: 'POST',
+						credentials: 'include', // wysyła cookie refresh_token
+					})
+
+					if (!res.ok) {
+						get().logout()
+						return null
+					}
+
+					const data = await res.json()
+					const newToken = data.access_token
+
+					if (newToken) {
+						set((state) => ({ ...state, token: newToken }))
+						return newToken
+					}
+
+					get().logout()
+					return null
+				} catch {
+					get().logout()
+					return null
+				}
+			},
 		}),
 		{
 			name: 'bolide-auth-storage',

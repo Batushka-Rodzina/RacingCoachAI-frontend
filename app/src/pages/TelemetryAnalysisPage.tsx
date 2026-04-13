@@ -63,41 +63,7 @@ const cssStyles = `
   .custom-scrollbar::-webkit-scrollbar { width: 6px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
   .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 107, 0, 0.3); border-radius: 3px; }
-  
-  /* Animacje AI */
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-  .animate-fade-up { animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }
-  .ai-scanner { position: relative; overflow: hidden; }
-  .ai-scanner::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to bottom, transparent, rgba(168, 85, 247, 0.2), transparent); animation: scanline 2s linear infinite; pointer-events: none; }
-  .ai-card-mistake { border: 1px solid rgba(244, 63, 94, 0.2); background: linear-gradient(180deg, rgba(244, 63, 94, 0.05) 0%, transparent 100%); box-shadow: inset 0 1px 0 rgba(244,63,94,0.1); }
-  .ai-card-fix { border: 1px solid rgba(16, 185, 129, 0.2); background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%); box-shadow: inset 0 1px 0 rgba(16,185,129,0.1); }
 `
-
-const parseAIText = (rawText: string) => {
-	const clean = rawText.replace(
-		/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
-		''
-	)
-	const mistakeMatch = clean.match(
-		/Mistake Analysis:([\s\S]*?)(?=Correction:|$)/i
-	)
-	const correctionMatch = clean.match(/Correction:([\s\S]*)$/i)
-	return {
-		mistakes: mistakeMatch
-			? mistakeMatch[1]
-					.trim()
-					.split('\n')
-					.filter((l) => l.trim().length > 0)
-			: [clean],
-		corrections: correctionMatch
-			? correctionMatch[1]
-					.trim()
-					.split('\n')
-					.filter((l) => l.trim().length > 0)
-			: [],
-	}
-}
 
 const TelemetryAnalysisPage: React.FC = () => {
 	const { sessionId, lapNum } = useParams<{
@@ -113,13 +79,7 @@ const TelemetryAnalysisPage: React.FC = () => {
 	const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
 	const [hoverIndex, setHoverIndex] = useState<number | null>(null)
-	const [selectedCornerName, setSelectedCornerName] = useState<string | null>(
-		null
-	)
-
-	// AI State & Cache
-	const [isAiLoading, setIsAiLoading] = useState(false)
-	const [aiCache, setAiCache] = useState<Record<string, any>>({})
+	const [selectedCornerName, setSelectedCornerName] = useState<string | null>(null)
 
 	const parseCSV = useCallback((text: string): TelemetryData[] => {
 		const lines = text.trim().split('\n')
@@ -179,36 +139,6 @@ const TelemetryAnalysisPage: React.FC = () => {
 		}
 		if (sessionId && lapNum && token) fetchData()
 	}, [sessionId, lapNum, token, parseCSV])
-
-	const handleAnalyzeAI = async () => {
-		if (!selectedCornerName || aiCache[selectedCornerName]) return
-		setIsAiLoading(true)
-		try {
-			const res = await fetch(
-				`${API_URL}/analysis/sessions/${sessionId}/laps/${lapNum}/analyze`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${token}`,
-					},
-					body: JSON.stringify({ corner_name: selectedCornerName }),
-				}
-			)
-			const data = await res.json()
-			setAiCache((prev) => ({
-				...prev,
-				[selectedCornerName]: {
-					...data,
-					parsedFeedback: parseAIText(data.feedback),
-				},
-			}))
-		} catch (e) {
-			console.error(e)
-		} finally {
-			setIsAiLoading(false)
-		}
-	}
 
 	// --- OBLICZENIA WIZUALNE I MAPA ---
 	const selectedCornerDef = useMemo(
@@ -287,13 +217,10 @@ const TelemetryAnalysisPage: React.FC = () => {
 					throttle: (telemetryData[hoverIndex].Throttle * 100).toFixed(0),
 					brake: (telemetryData[hoverIndex].Brake * 100).toFixed(0),
 					gear: telemetryData[hoverIndex].Gear,
-					steering:
-						telemetryData[hoverIndex].SteeringWheelAngle * (180 / Math.PI),
+					steering: telemetryData[hoverIndex].SteeringWheelAngle * (180 / Math.PI),
 					lapPct: (telemetryData[hoverIndex].LapDistPct * 100).toFixed(2),
 				}
 			: null
-
-	const currentAiData = selectedCornerName ? aiCache[selectedCornerName] : null
 
 	return (
 		<div className="flex min-h-screen bg-neutral-950 text-white overflow-hidden carbon-bg">
@@ -313,15 +240,15 @@ const TelemetryAnalysisPage: React.FC = () => {
 							className="text-3xl font-black uppercase tracking-wide"
 							style={{ fontFamily: 'Bebas Neue' }}
 						>
-							Lap Analysis <span className="text-primary">#{lapNum}</span>
+							Lap Analysis <span style={{ color: COLORS.primary }}>#{lapNum}</span>
 						</h1>
 					</div>
 					{selectedCornerName && (
 						<button
 							onClick={() => setSelectedCornerName(null)}
-							className="px-6 py-2 border border-primary/50 hover:bg-primary/10 text-primary rounded-lg text-xs font-bold uppercase transition-all"
+							className="px-6 py-2 border border-orange-500/50 hover:bg-orange-500/10 text-orange-500 rounded-lg text-xs font-bold uppercase transition-all"
 						>
-							Close AI View
+							Show Full Lap
 						</button>
 					)}
 				</header>
@@ -330,15 +257,24 @@ const TelemetryAnalysisPage: React.FC = () => {
 					{isLoading && (
 						<div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
 							<div
-								className="animate-pulse text-xl font-bold uppercase tracking-widest text-primary"
-								style={{ fontFamily: 'Bebas Neue' }}
+								className="animate-pulse text-xl font-bold uppercase tracking-widest"
+								style={{ color: COLORS.primary, fontFamily: 'Bebas Neue' }}
 							>
 								Fetching Telemetry Stream...
 							</div>
 						</div>
 					)}
 
-					{/* LEWA STRONA - AI I WYKRESY */}
+					{errorMsg && (
+						<div className="absolute inset-0 flex items-center justify-center z-50">
+							<div className="text-red-400 text-center">
+								<p className="text-2xl font-black uppercase" style={{ fontFamily: 'Bebas Neue' }}>Error</p>
+								<p className="text-sm mt-2">{errorMsg}</p>
+							</div>
+						</div>
+					)}
+
+					{/* LEWA STRONA - WYKRESY */}
 					<div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
 						{/* HUD / DATA VALUES */}
 						<div className="carbon-card rounded-xl p-4 sticky top-0 z-10 backdrop-blur-md">
@@ -367,168 +303,20 @@ const TelemetryAnalysisPage: React.FC = () => {
 									value={currentData ? `${currentData.brake}%` : '—'}
 									color={COLORS.brake}
 								/>
+								{selectedCornerName && (
+									<div className="ml-auto flex items-center gap-2 px-3 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20">
+										<span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: COLORS.textMuted }}>
+											Viewing
+										</span>
+										<span className="text-sm font-bold" style={{ color: COLORS.primary }}>
+											{selectedCornerName}
+										</span>
+									</div>
+								)}
 							</div>
 						</div>
 
-						{/* POTĘŻNY PANEL AI */}
-						{selectedCornerName && (
-							<div className="rounded-2xl overflow-hidden bg-neutral-900/80 border border-purple-500/20 shadow-[0_0_30px_rgba(168,85,247,0.05)] backdrop-blur-xl animate-fade-up">
-								<div className="p-5 flex justify-between items-center border-b border-white/5 relative overflow-hidden">
-									<div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50"></div>
-									<div>
-										<h3
-											className="text-2xl font-black uppercase tracking-wider flex items-center gap-3"
-											style={{ fontFamily: 'Bebas Neue' }}
-										>
-											<span className="text-purple-400 animate-pulse">●</span>{' '}
-											RACE_COACH_AI
-										</h3>
-										<p className="text-xs text-neutral-400 font-mono mt-1">
-											Target Segment: {selectedCornerName}
-										</p>
-									</div>
-									{!currentAiData && !isAiLoading && (
-										<button
-											onClick={handleAnalyzeAI}
-											className="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.6)]"
-										>
-											Initialize Analysis
-										</button>
-									)}
-								</div>
-
-								{isAiLoading && (
-									<div className="p-10 text-center ai-scanner">
-										<div className="text-purple-400 mb-4 animate-spin inline-block text-3xl">
-											⚙
-										</div>
-										<p className="font-mono text-xs uppercase tracking-widest text-purple-400">
-											Processing telemetry stream...
-										</p>
-									</div>
-								)}
-
-								{currentAiData && !isAiLoading && (
-									<div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-8">
-										{/* LEWA KOLUMNA - METRYKI */}
-										<div>
-											<p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-4">
-												Telemetry Delta
-											</p>
-											<div className="bg-black/40 rounded-xl border border-white/5 overflow-hidden">
-												<table className="w-full text-left text-xs font-mono">
-													<thead>
-														<tr className="bg-white/5 text-neutral-400">
-															<th className="py-3 px-4 font-normal">Metric</th>
-															<th className="py-3 px-4 font-normal text-right">
-																You
-															</th>
-															<th className="py-3 px-4 font-normal text-right">
-																Pro
-															</th>
-															<th className="py-3 px-4 font-normal text-right">
-																Delta
-															</th>
-														</tr>
-													</thead>
-													<tbody className="divide-y divide-white/5">
-														<ComparisonRow
-															label="Entry Spd"
-															val1={currentAiData.drv_metrics?.entry_speed}
-															val2={currentAiData.ref_metrics?.entry_speed}
-															unit="km/h"
-															inverse={false}
-														/>
-														<ComparisonRow
-															label="Min Spd"
-															val1={currentAiData.drv_metrics?.min_speed}
-															val2={currentAiData.ref_metrics?.min_speed}
-															unit="km/h"
-															inverse={false}
-														/>
-														<ComparisonRow
-															label="Apex Throt"
-															val1={currentAiData.drv_metrics?.apex_throttle}
-															val2={currentAiData.ref_metrics?.apex_throttle}
-															unit="%"
-															inverse={false}
-														/>
-														<ComparisonRow
-															label="Exit Spd"
-															val1={currentAiData.drv_metrics?.exit_speed}
-															val2={currentAiData.ref_metrics?.exit_speed}
-															unit="km/h"
-															inverse={false}
-														/>
-													</tbody>
-												</table>
-											</div>
-										</div>
-
-										{/* PRAWA KOLUMNA - ROZDZIELONY TEKST AI */}
-										<div className="space-y-4">
-											{currentAiData.parsedFeedback.mistakes.length > 0 && (
-												<div className="ai-card-mistake rounded-xl p-5">
-													<p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-														<span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>{' '}
-														Identified Mistakes
-													</p>
-													<ul className="space-y-2">
-														{currentAiData.parsedFeedback.mistakes.map(
-															(line: string, i: number) => {
-																const text = line.replace(/^-/, '').trim()
-																if (!text) return null
-																return (
-																	<li
-																		key={i}
-																		className="text-sm text-neutral-300 font-sans leading-relaxed flex gap-2"
-																	>
-																		<span className="text-rose-500/50 mt-0.5">
-																			›
-																		</span>{' '}
-																		{text}
-																	</li>
-																)
-															}
-														)}
-													</ul>
-												</div>
-											)}
-
-											{currentAiData.parsedFeedback.corrections.length > 0 && (
-												<div className="ai-card-fix rounded-xl p-5">
-													<p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-														<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>{' '}
-														Actionable Corrections
-													</p>
-													<ul className="space-y-2">
-														{currentAiData.parsedFeedback.corrections.map(
-															(line: string, i: number) => {
-																const text = line.replace(/^-/, '').trim()
-																if (!text) return null
-																return (
-																	<li
-																		key={i}
-																		className="text-sm text-white font-sans font-medium leading-relaxed flex gap-2"
-																	>
-																		<span className="text-emerald-500 mt-0.5">
-																			✓
-																		</span>{' '}
-																		{text}
-																	</li>
-																)
-															}
-														)}
-													</ul>
-												</div>
-											)}
-										</div>
-									</div>
-								)}
-							</div>
-						)}
-
-						{/* ZWRÓCONE WYKRESY */}
+						{/* WYKRESY */}
 						{chartData && (
 							<>
 								<div className="carbon-card rounded-2xl p-6">
@@ -539,10 +327,7 @@ const TelemetryAnalysisPage: React.FC = () => {
 										>
 											Speed
 										</h3>
-										<span
-											className="text-sm font-mono"
-											style={{ color: COLORS.speed }}
-										>
+										<span className="text-sm font-mono" style={{ color: COLORS.speed }}>
 											Max: {chartData.maxSpeed.toFixed(1)} km/h
 										</span>
 									</div>
@@ -555,9 +340,7 @@ const TelemetryAnalysisPage: React.FC = () => {
 												? hoverIndex - filteredData.startIndex
 												: null
 										}
-										onHover={(e) =>
-											handleChartHover(e, filteredData.data.length)
-										}
+										onHover={(e) => handleChartHover(e, filteredData.data.length)}
 										onLeave={handleChartLeave}
 									/>
 								</div>
@@ -580,9 +363,7 @@ const TelemetryAnalysisPage: React.FC = () => {
 												? hoverIndex - filteredData.startIndex
 												: null
 										}
-										onHover={(e) =>
-											handleChartHover(e, filteredData.data.length)
-										}
+										onHover={(e) => handleChartHover(e, filteredData.data.length)}
 										onLeave={handleChartLeave}
 										labels={['Throttle', 'Brake']}
 									/>
@@ -596,10 +377,7 @@ const TelemetryAnalysisPage: React.FC = () => {
 										>
 											RPM
 										</h3>
-										<span
-											className="text-sm font-mono"
-											style={{ color: COLORS.rpm }}
-										>
+										<span className="text-sm font-mono" style={{ color: COLORS.rpm }}>
 											Max: {chartData.maxRPM.toFixed(0)}
 										</span>
 									</div>
@@ -612,19 +390,25 @@ const TelemetryAnalysisPage: React.FC = () => {
 												? hoverIndex - filteredData.startIndex
 												: null
 										}
-										onHover={(e) =>
-											handleChartHover(e, filteredData.data.length)
-										}
+										onHover={(e) => handleChartHover(e, filteredData.data.length)}
 										onLeave={handleChartLeave}
 									/>
 								</div>
 							</>
 						)}
+
+						{!chartData && !isLoading && !errorMsg && (
+							<div className="carbon-card rounded-2xl p-16 text-center">
+								<p className="text-2xl font-black uppercase" style={{ fontFamily: 'Bebas Neue', color: COLORS.textMuted }}>
+									No telemetry data available
+								</p>
+							</div>
+						)}
 					</div>
 
 					{/* PRAWA STRONA - NAWIGACJA PO TORZE */}
 					<div className="w-80 bg-black/60 border-l border-white/5 p-6 flex flex-col gap-6 relative z-10 shadow-[-10px_0_30px_rgba(0,0,0,0.5)]">
-						{/* ZWRÓCONY GEAR I STEERING */}
+						{/* GEAR I STEERING */}
 						<div className="flex gap-4">
 							<div className="carbon-card rounded-2xl p-4 text-center flex-1">
 								<p
@@ -660,16 +444,13 @@ const TelemetryAnalysisPage: React.FC = () => {
 							</div>
 						</div>
 
-						{/* ZWRÓCONA DYNAMICZNA MAPA TORU Z GPS */}
+						{/* MAPA TORU Z GPS */}
 						<div className="aspect-square bg-neutral-900/80 rounded-2xl border border-white/5 p-4 relative shadow-inner">
 							<p className="absolute top-4 w-full left-0 text-center text-[10px] font-bold text-neutral-500 uppercase tracking-widest z-10">
 								Spa-Francorchamps
 							</p>
 							{trackMapData && (
-								<svg
-									viewBox="0 0 100 100"
-									className="w-full h-full relative z-0"
-								>
+								<svg viewBox="0 0 100 100" className="w-full h-full relative z-0">
 									{/* Główna linia toru */}
 									<path
 										d={trackMapData.points
@@ -682,7 +463,7 @@ const TelemetryAnalysisPage: React.FC = () => {
 										strokeLinejoin="round"
 									/>
 
-									{/* Pokolorowane zakręty z bazy */}
+									{/* Pokolorowane zakręty */}
 									{corners.map((corner, i) => {
 										const cornerPoints = trackMapData.points.filter(
 											(p) =>
@@ -699,18 +480,15 @@ const TelemetryAnalysisPage: React.FC = () => {
 											else {
 												const prev = cornerPoints[j - 1]
 												const distance = Math.sqrt(
-													Math.pow(curr.x - prev.x, 2) +
-														Math.pow(curr.y - prev.y, 2)
+													Math.pow(curr.x - prev.x, 2) + Math.pow(curr.y - prev.y, 2)
 												)
 												if (distance > 8) {
-													if (currentPath.length > 1)
-														pathParts.push(currentPath.join(' '))
+													if (currentPath.length > 1) pathParts.push(currentPath.join(' '))
 													currentPath = [`M ${curr.x} ${curr.y}`]
 												} else currentPath.push(`L ${curr.x} ${curr.y}`)
 											}
 										}
-										if (currentPath.length > 1)
-											pathParts.push(currentPath.join(' '))
+										if (currentPath.length > 1) pathParts.push(currentPath.join(' '))
 										const pathD = pathParts.join(' ')
 										if (!pathD) return null
 
@@ -725,7 +503,6 @@ const TelemetryAnalysisPage: React.FC = () => {
 												stroke={color}
 												strokeWidth={isSelected ? 5 : 3}
 												strokeLinecap="round"
-												className="segment-path"
 												style={{
 													opacity:
 														selectedCornerName === null
@@ -733,9 +510,8 @@ const TelemetryAnalysisPage: React.FC = () => {
 															: isSelected
 																? 1
 																: 0.2,
-													filter: isSelected
-														? `drop-shadow(0 0 4px ${color})`
-														: 'none',
+													filter: isSelected ? `drop-shadow(0 0 4px ${color})` : 'none',
+													cursor: 'pointer',
 												}}
 												onClick={() => setSelectedCornerName(corner.name)}
 											/>
@@ -764,13 +540,13 @@ const TelemetryAnalysisPage: React.FC = () => {
 							)}
 						</div>
 
+						{/* LISTA ZAKRĘTÓW */}
 						<div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar pr-2">
 							<p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1 sticky top-0 bg-black/60 py-2 backdrop-blur-md">
 								Sector Navigation
 							</p>
 							{corners.map((c, i) => {
 								const isSelected = selectedCornerName === c.name
-								const isCached = !!aiCache[c.name]
 								const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length]
 
 								return (
@@ -778,35 +554,23 @@ const TelemetryAnalysisPage: React.FC = () => {
 										key={c.name}
 										onClick={() => setSelectedCornerName(c.name)}
 										className={`w-full text-left p-4 rounded-xl text-xs font-bold transition-all border flex justify-between items-center group
-                    ${isSelected ? 'bg-white/10 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+                      ${isSelected ? 'bg-white/10 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
 										style={{
-											borderColor: isSelected
-												? color
-												: 'rgba(255,255,255,0.05)',
-											borderLeft: `4px solid ${color}`,
+											borderTopColor: isSelected ? color : 'rgba(255,255,255,0.05)',
+											borderRightColor: isSelected ? color : 'rgba(255,255,255,0.05)',
+											borderBottomColor: isSelected ? color : 'rgba(255,255,255,0.05)',
+											borderLeftColor: color,
+											borderLeftWidth: '4px',
 										}}
 									>
 										<div>
-											<span
-												className={`mr-2 ${isSelected ? 'text-white' : 'opacity-40'}`}
-											>
+											<span className={`mr-2 ${isSelected ? 'text-white' : 'opacity-40'}`}>
 												{i + 1}
 											</span>
-											<span
-												className={
-													isSelected
-														? 'text-white'
-														: 'text-neutral-400 group-hover:text-white'
-												}
-											>
+											<span className={isSelected ? 'text-white' : 'text-neutral-400 group-hover:text-white'}>
 												{c.name}
 											</span>
 										</div>
-										{isCached && (
-											<span className="text-[8px] uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
-												Analyzed
-											</span>
-										)}
 									</button>
 								)
 							})}
@@ -818,7 +582,7 @@ const TelemetryAnalysisPage: React.FC = () => {
 	)
 }
 
-// === KOMPONENTY POMOCNICZE WIZUALNE ===
+// === KOMPONENTY POMOCNICZE ===
 const DataValue: React.FC<{ label: string; value: string; color?: string }> = ({
 	label,
 	value,
@@ -828,50 +592,11 @@ const DataValue: React.FC<{ label: string; value: string; color?: string }> = ({
 		<p className="text-[10px] uppercase tracking-wider font-semibold mb-1 text-neutral-500 font-sans">
 			{label}
 		</p>
-		<p
-			className="text-base font-bold font-mono"
-			style={{ color: color || COLORS.text }}
-		>
+		<p className="text-base font-bold font-mono" style={{ color: color || COLORS.text }}>
 			{value}
 		</p>
 	</div>
 )
-
-const ComparisonRow: React.FC<{
-	label: string
-	val1: number
-	val2: number
-	unit: string
-	inverse: boolean
-}> = ({ label, val1, val2, unit, inverse }) => {
-	const delta = (val1 || 0) - (val2 || 0)
-	const isPositive = delta > 0
-	const isGood = (isPositive && !inverse) || (!isPositive && inverse)
-	const color =
-		Math.abs(delta) < 0.1
-			? 'text-neutral-500'
-			: isGood
-				? 'text-emerald-400'
-				: 'text-rose-400'
-
-	return (
-		<tr className="group hover:bg-white/5 transition-colors">
-			<td className="py-3 px-4 text-neutral-400 group-hover:text-white transition-colors">
-				{label}
-			</td>
-			<td className="py-3 px-4 text-right text-white">
-				{val1?.toFixed(1)} {unit}
-			</td>
-			<td className="py-3 px-4 text-right text-neutral-500">
-				{val2?.toFixed(1)} {unit}
-			</td>
-			<td className={`py-3 px-4 text-right font-bold ${color}`}>
-				{delta > 0 ? '+' : ''}
-				{delta.toFixed(1)}
-			</td>
-		</tr>
-	)
-}
 
 const SteeringWheel: React.FC<{ angle: number }> = ({ angle }) => (
 	<div className="relative w-24 h-24 mx-auto">
@@ -883,63 +608,13 @@ const SteeringWheel: React.FC<{ angle: number }> = ({ angle }) => (
 				transition: 'transform 0.05s ease-out',
 			}}
 		>
-			<circle
-				cx="50"
-				cy="50"
-				r="45"
-				fill="none"
-				stroke="rgba(255,255,255,0.2)"
-				strokeWidth="6"
-			/>
-			<path
-				d="M 50 5 A 45 45 0 0 1 95 50"
-				fill="none"
-				stroke={COLORS.primary}
-				strokeWidth="6"
-				strokeLinecap="round"
-			/>
-			<path
-				d="M 50 95 A 45 45 0 0 1 5 50"
-				fill="none"
-				stroke={COLORS.primary}
-				strokeWidth="6"
-				strokeLinecap="round"
-			/>
-			<circle
-				cx="50"
-				cy="50"
-				r="12"
-				fill="rgba(26,26,26,0.9)"
-				stroke="rgba(255,255,255,0.1)"
-				strokeWidth="1"
-			/>
-			<line
-				x1="50"
-				y1="38"
-				x2="50"
-				y2="15"
-				stroke="rgba(255,255,255,0.3)"
-				strokeWidth="3"
-				strokeLinecap="round"
-			/>
-			<line
-				x1="38"
-				y1="56"
-				x2="18"
-				y2="70"
-				stroke="rgba(255,255,255,0.3)"
-				strokeWidth="3"
-				strokeLinecap="round"
-			/>
-			<line
-				x1="62"
-				y1="56"
-				x2="82"
-				y2="70"
-				stroke="rgba(255,255,255,0.3)"
-				strokeWidth="3"
-				strokeLinecap="round"
-			/>
+			<circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="6" />
+			<path d="M 50 5 A 45 45 0 0 1 95 50" fill="none" stroke={COLORS.primary} strokeWidth="6" strokeLinecap="round" />
+			<path d="M 50 95 A 45 45 0 0 1 5 50" fill="none" stroke={COLORS.primary} strokeWidth="6" strokeLinecap="round" />
+			<circle cx="50" cy="50" r="12" fill="rgba(26,26,26,0.9)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+			<line x1="50" y1="38" x2="50" y2="15" stroke="rgba(255,255,255,0.3)" strokeWidth="3" strokeLinecap="round" />
+			<line x1="38" y1="56" x2="18" y2="70" stroke="rgba(255,255,255,0.3)" strokeWidth="3" strokeLinecap="round" />
+			<line x1="62" y1="56" x2="82" y2="70" stroke="rgba(255,255,255,0.3)" strokeWidth="3" strokeLinecap="round" />
 			<circle cx="50" cy="10" r="3" fill={COLORS.primary} />
 		</svg>
 	</div>
@@ -973,10 +648,7 @@ const TelemetryChart: React.FC<TelemetryChartProps> = ({
 	const valueToY = (v: number) => height - (v / maxValue) * height
 	const createPath = (values: number[]) =>
 		values
-			.map(
-				(v, i) =>
-					`${i === 0 ? 'M' : 'L'} ${(i / (values.length - 1)) * width} ${valueToY(v)}`
-			)
+			.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / (values.length - 1)) * width} ${valueToY(v)}`)
 			.join(' ')
 	const createArea = (values: number[]) =>
 		`${createPath(values)} L ${width} ${height} L 0 ${height} Z`
@@ -990,18 +662,12 @@ const TelemetryChart: React.FC<TelemetryChartProps> = ({
 			{labels && (
 				<div className="flex gap-4 mb-2">
 					<div className="flex items-center gap-2">
-						<div
-							className="w-3 h-3 rounded-full"
-							style={{ backgroundColor: color }}
-						/>
+						<div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
 						<span className="text-xs text-neutral-500">{labels[0]}</span>
 					</div>
 					{labels[1] && color2 && (
 						<div className="flex items-center gap-2">
-							<div
-								className="w-3 h-3 rounded-full"
-								style={{ backgroundColor: color2 }}
-							/>
+							<div className="w-3 h-3 rounded-full" style={{ backgroundColor: color2 }} />
 							<span className="text-xs text-neutral-500">{labels[1]}</span>
 						</div>
 					)}
@@ -1027,22 +693,10 @@ const TelemetryChart: React.FC<TelemetryChartProps> = ({
 					)}
 				</defs>
 				<path d={createArea(data)} fill={`url(#${id1})`} />
+				{data2 && color2 && <path d={createArea(data2)} fill={`url(#${id2})`} />}
+				<path d={createPath(data)} fill="none" stroke={color} strokeWidth="1.5" />
 				{data2 && color2 && (
-					<path d={createArea(data2)} fill={`url(#${id2})`} />
-				)}
-				<path
-					d={createPath(data)}
-					fill="none"
-					stroke={color}
-					strokeWidth="1.5"
-				/>
-				{data2 && color2 && (
-					<path
-						d={createPath(data2)}
-						fill="none"
-						stroke={color2}
-						strokeWidth="1.5"
-					/>
+					<path d={createPath(data2)} fill="none" stroke={color2} strokeWidth="1.5" />
 				)}
 				{hoverIndex !== null && hoverIndex >= 0 && hoverIndex < data.length && (
 					<>
