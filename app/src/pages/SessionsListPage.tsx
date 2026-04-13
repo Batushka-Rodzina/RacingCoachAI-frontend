@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import { useAuthStore } from '../store/authStore'
 
-const API_URL = 'http://127.0.0.1:8000/sessions'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+const API_URL = `${BASE_URL}/sessions`
 
 const COLORS = {
 	primary: '#ff6b00',

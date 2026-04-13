@@ -13,8 +13,8 @@ const COLORS = {
 	danger: '#dc2626',
 }
 
-// Zmień to na adres swojego backendu
-const API_URL = 'http://127.0.0.1:8000/api/auth/login'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+const API_URL = `${BASE_URL}/api/auth/login`
 
 const LoginPage: React.FC = () => {
 	const navigate = useNavigate()
