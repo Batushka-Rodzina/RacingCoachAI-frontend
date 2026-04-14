@@ -1,9 +1,9 @@
 // src/pages/landing-page.tsx
 
+import type { Variants } from 'framer-motion'
+import { motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import type { Variants } from 'framer-motion'
 import AnimatedTrackBackground from '../components/Trackbackground.tsx'
 
 // === INTERFEJSY DANYCH ===
@@ -34,9 +34,9 @@ interface TestimonialItem {
 
 // === KOLORY PREMIUM IRACING ===
 const COLORS = {
-	primary: '#ff6b00',      // iRacing Orange
+	primary: '#ff6b00', // iRacing Orange
 	primaryHover: '#ff8533',
-	gold: '#d4af37',         // Elite/Pro Gold
+	gold: '#d4af37', // Elite/Pro Gold
 	carbon: '#1a1a1a',
 	carbonLight: '#2d2d2d',
 	danger: '#dc2626',
@@ -81,11 +81,11 @@ const stagger: Variants = {
 }
 
 // Komponent licznika animowanego
-const AnimatedCounter: React.FC<{ end: number; suffix?: string; duration?: number }> = ({ 
-	end, 
-	suffix = '', 
-	duration = 2 
-}) => {
+const AnimatedCounter: React.FC<{
+	end: number
+	suffix?: string
+	duration?: number
+}> = ({ end, suffix = '', duration = 2 }) => {
 	const [count, setCount] = useState(0)
 
 	useEffect(() => {
@@ -94,10 +94,13 @@ const AnimatedCounter: React.FC<{ end: number; suffix?: string; duration?: numbe
 
 		const animate = (currentTime: number) => {
 			if (!startTime) startTime = currentTime
-			const progress = Math.min((currentTime - startTime) / (duration * 1000), 1)
-			
+			const progress = Math.min(
+				(currentTime - startTime) / (duration * 1000),
+				1
+			)
+
 			setCount(Math.floor(progress * end))
-			
+
 			if (progress < 1) {
 				animationFrame = requestAnimationFrame(animate)
 			}
@@ -107,7 +110,12 @@ const AnimatedCounter: React.FC<{ end: number; suffix?: string; duration?: numbe
 		return () => cancelAnimationFrame(animationFrame)
 	}, [end, duration])
 
-	return <span>{count.toLocaleString()}{suffix}</span>
+	return (
+		<span>
+			{count.toLocaleString()}
+			{suffix}
+		</span>
+	)
 }
 
 const LandingPage: React.FC = () => {
@@ -116,7 +124,8 @@ const LandingPage: React.FC = () => {
 	// Scroll progress bar
 	useEffect(() => {
 		const handleScroll = () => {
-			const totalHeight = document.documentElement.scrollHeight - window.innerHeight
+			const totalHeight =
+				document.documentElement.scrollHeight - window.innerHeight
 			const progress = (window.scrollY / totalHeight) * 100
 			setScrollProgress(progress)
 		}
@@ -169,32 +178,35 @@ const LandingPage: React.FC = () => {
 	// --- TESTIMONIALS Z IRATING ---
 	const testimonials: TestimonialItem[] = [
 		{
-			quote: "Dropped 3 seconds at Spa in one week. The corner-by-corner breakdown showed me I was braking way too early into Les Combes. Fixed it, gained 1.2s just there.",
-			author: "Marcus Eriksson",
-			role: "GT3 Sprint Series",
+			quote:
+				'Dropped 3 seconds at Spa in one week. The corner-by-corner breakdown showed me I was braking way too early into Les Combes. Fixed it, gained 1.2s just there.',
+			author: 'Marcus Eriksson',
+			role: 'GT3 Sprint Series',
 			iRating: 5847,
-			avatar: "ME",
-			improvement: "-3.2s",
-			series: "IMSA"
+			avatar: 'ME',
+			improvement: '-3.2s',
+			series: 'IMSA',
 		},
 		{
-			quote: "Finally broke into top split. Bolide showed my throttle application out of slow corners was costing me 0.3s per lap. Now I'm consistently in the top 5.",
-			author: "Jennifer Walsh",
-			role: "Formula Driver",
+			quote:
+				"Finally broke into top split. Bolide showed my throttle application out of slow corners was costing me 0.3s per lap. Now I'm consistently in the top 5.",
+			author: 'Jennifer Walsh',
+			role: 'Formula Driver',
 			iRating: 4521,
-			avatar: "JW",
-			improvement: "-2.8s",
-			series: "F4"
+			avatar: 'JW',
+			improvement: '-2.8s',
+			series: 'F4',
 		},
 		{
-			quote: "The setup correlation feature is insane. Tested 6 different rear wing settings and found the perfect balance. My tire deg improved by 15% over stint.",
-			author: "Carlos Mendez",
-			role: "Endurance Specialist",
+			quote:
+				'The setup correlation feature is insane. Tested 6 different rear wing settings and found the perfect balance. My tire deg improved by 15% over stint.',
+			author: 'Carlos Mendez',
+			role: 'Endurance Specialist',
 			iRating: 6203,
-			avatar: "CM",
-			improvement: "-1.9s",
-			series: "IMSA Endurance"
-		}
+			avatar: 'CM',
+			improvement: '-1.9s',
+			series: 'IMSA Endurance',
+		},
 	]
 
 	return (
@@ -260,12 +272,12 @@ const LandingPage: React.FC = () => {
 			`}</style>
 
 			{/* SCROLL PROGRESS BAR - Throttle style */}
-			<div className="fixed top-0 left-0 w-full h-1.5 bg-neutral-900 z-[60]">
-				<div 
+			<div className="fixed top-0 left-0 w-full h-1.5 bg-neutral-900 z-60">
+				<div
 					className="h-full transition-all duration-150"
-					style={{ 
+					style={{
 						width: `${scrollProgress}%`,
-						background: `linear-gradient(90deg, ${COLORS.primary} 0%, ${COLORS.gold} 100%)`
+						background: `linear-gradient(90deg, ${COLORS.primary} 0%, ${COLORS.gold} 100%)`,
 					}}
 				/>
 			</div>
@@ -276,9 +288,9 @@ const LandingPage: React.FC = () => {
 			{/* 1. HEADER */}
 			<motion.header
 				className="sticky top-0 z-50 backdrop-blur-md border-b"
-				style={{ 
+				style={{
 					backgroundColor: 'rgba(10, 10, 10, 0.9)',
-					borderColor: 'rgba(255, 107, 0, 0.2)'
+					borderColor: 'rgba(255, 107, 0, 0.2)',
 				}}
 				initial={{ opacity: 0, y: -20 }}
 				animate={{ opacity: 1, y: 0 }}
@@ -289,56 +301,65 @@ const LandingPage: React.FC = () => {
 						<Link
 							to="/"
 							className="text-2xl font-black tracking-wider"
-							style={{ 
+							style={{
 								color: COLORS.primary,
 								fontFamily: 'Michroma, sans-serif',
-								letterSpacing: '0.15em'
+								letterSpacing: '0.15em',
 							}}
 						>
 							BOLIDE
 						</Link>
 						{/* iRacing Compatible Badge */}
-						<div 
+						<div
 							className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
-							style={{ 
+							style={{
 								backgroundColor: 'rgba(255, 107, 0, 0.1)',
 								border: '1px solid rgba(255, 107, 0, 0.3)',
 								color: COLORS.primary,
-								fontFamily: 'DM Sans, sans-serif'
+								fontFamily: 'DM Sans, sans-serif',
 							}}
 						>
 							<span>Built for iRacing</span>
 						</div>
 					</div>
 
-					<nav className="flex gap-4 md:gap-6 text-sm items-center" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-						<Link 
-							to="/login" 
+					<nav
+						className="flex gap-4 md:gap-6 text-sm items-center"
+						style={{ fontFamily: 'DM Sans, sans-serif' }}
+					>
+						<Link
+							to="/login"
 							className="transition font-medium hidden md:block"
 							style={{ color: COLORS.text }}
-							onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary}
-							onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}
+							onMouseEnter={(e) =>
+								(e.currentTarget.style.color = COLORS.primary)
+							}
+							onMouseLeave={(e) => (e.currentTarget.style.color = COLORS.text)}
 						>
 							Log in
 						</Link>
 						<Link
 							to="/register"
 							className="px-5 py-2.5 rounded-lg font-bold transition uppercase tracking-wide text-xs"
-							style={{ 
+							style={{
 								backgroundColor: COLORS.primary,
-								color: '#000'
+								color: '#000',
 							}}
-							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryHover}
-							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary}
+							onMouseEnter={(e) =>
+								(e.currentTarget.style.backgroundColor = COLORS.primaryHover)
+							}
+							onMouseLeave={(e) =>
+								(e.currentTarget.style.backgroundColor = COLORS.primary)
+							}
 						>
 							Start Free
 						</Link>
 						<Link
 							to="/dashboard"
 							className="px-5 py-2.5 font-bold rounded-lg transition uppercase tracking-wide text-xs border"
-							style={{ 
+							style={{
 								borderColor: 'rgba(255, 107, 0, 0.5)',
-								color: COLORS.primary
+								color: COLORS.primary,
 							}}
 							onMouseEnter={(e) => {
 								e.currentTarget.style.backgroundColor = 'rgba(255, 107, 0, 0.1)'
@@ -348,6 +369,29 @@ const LandingPage: React.FC = () => {
 							}}
 						>
 							Dashboard
+						</Link>
+						<Link
+							to="https://drive.google.com/drive/folders/1ZZi4NzE22dugZnp6IWzd6-FNTXP3CQxV"
+							className="px-5 py-2.5 font-bold rounded-lg transition  tracking-wide text-xs border"
+							target="_blank"
+							rel="noopener noreferrer"
+							style={{
+								backgroundColor: '#00A8FF',
+								color: '#FFFFFF',
+								borderColor: '#00A8FF',
+								fontFamily: 'Arial, sans-serif',
+								cursor: 'pointer',
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.backgroundColor = '#008EDD'
+								e.currentTarget.style.borderColor = '#008EDD'
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.backgroundColor = '#00A8FF'
+								e.currentTarget.style.borderColor = '#00A8FF'
+							}}
+						>
+							r@bbIT 2026 - pdf
 						</Link>
 					</nav>
 				</div>
@@ -366,7 +410,10 @@ const LandingPage: React.FC = () => {
 					<motion.h1
 						className="text-6xl md:text-8xl font-black tracking-tight leading-none"
 						variants={fadeInUp}
-						style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}
+						style={{
+							fontFamily: 'Bebas Neue, sans-serif',
+							letterSpacing: '0.02em',
+						}}
 					>
 						Find Your Missing{' '}
 						<span style={{ color: COLORS.primary }}>2 Seconds</span>
@@ -378,19 +425,25 @@ const LandingPage: React.FC = () => {
 						style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.text }}
 					>
 						AI-powered telemetry analysis that compares your driving to{' '}
-						<span style={{ color: COLORS.gold }} className="font-semibold">top-split aliens</span>.
-						See exactly where you lose time and get corner-specific coaching to climb the iRating ladder.
+						<span style={{ color: COLORS.gold }} className="font-semibold">
+							top-split aliens
+						</span>
+						. See exactly where you lose time and get corner-specific coaching
+						to climb the iRating ladder.
 					</motion.p>
 
-					<motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
+					<motion.div
+						variants={fadeInUp}
+						className="flex flex-col sm:flex-row gap-4 justify-center mt-12"
+					>
 						<Link
 							to="/register"
 							className="glow-button inline-block px-10 py-4 rounded-xl font-bold text-lg transition uppercase tracking-widest relative z-10"
-							style={{ 
+							style={{
 								backgroundColor: COLORS.primary,
 								color: '#000',
 								fontFamily: 'DM Sans, sans-serif',
-								letterSpacing: '0.1em'
+								letterSpacing: '0.1em',
 							}}
 							onMouseEnter={(e) => {
 								e.currentTarget.style.backgroundColor = COLORS.primaryHover
@@ -404,11 +457,11 @@ const LandingPage: React.FC = () => {
 						<Link
 							to="#how-it-works"
 							className="inline-block px-10 py-4 rounded-xl font-bold text-lg transition uppercase tracking-widest border"
-							style={{ 
+							style={{
 								borderColor: 'rgba(255, 255, 255, 0.2)',
 								color: COLORS.text,
 								fontFamily: 'DM Sans, sans-serif',
-								letterSpacing: '0.1em'
+								letterSpacing: '0.1em',
 							}}
 							onMouseEnter={(e) => {
 								e.currentTarget.style.borderColor = COLORS.primary
@@ -424,48 +477,66 @@ const LandingPage: React.FC = () => {
 					</motion.div>
 
 					{/* STATS COUNTERS */}
-					<motion.div 
+					<motion.div
 						className="grid grid-cols-3 gap-8 mt-24 max-w-3xl mx-auto"
 						variants={fadeInUp}
 					>
 						<div className="text-center">
-							<div 
+							<div
 								className="text-5xl md:text-6xl font-black mb-2"
-								style={{ color: COLORS.primary, fontFamily: 'Bebas Neue, sans-serif' }}
+								style={{
+									color: COLORS.primary,
+									fontFamily: 'Bebas Neue, sans-serif',
+								}}
 							>
 								<AnimatedCounter end={52000} suffix="+" />
 							</div>
-							<div 
+							<div
 								className="text-sm uppercase tracking-wider font-medium"
-								style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}
+								style={{
+									fontFamily: 'DM Sans, sans-serif',
+									color: COLORS.textMuted,
+								}}
 							>
 								iRacers Trust Us
 							</div>
 						</div>
 						<div className="text-center">
-							<div 
+							<div
 								className="text-5xl md:text-6xl font-black mb-2"
-								style={{ color: COLORS.primary, fontFamily: 'Bebas Neue, sans-serif' }}
+								style={{
+									color: COLORS.primary,
+									fontFamily: 'Bebas Neue, sans-serif',
+								}}
 							>
 								<AnimatedCounter end={2} suffix=".4s" duration={1.5} />
 							</div>
-							<div 
+							<div
 								className="text-sm uppercase tracking-wider font-medium"
-								style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}
+								style={{
+									fontFamily: 'DM Sans, sans-serif',
+									color: COLORS.textMuted,
+								}}
 							>
 								Avg. Time Gained
 							</div>
 						</div>
 						<div className="text-center">
-							<div 
+							<div
 								className="text-5xl md:text-6xl font-black mb-2"
-								style={{ color: COLORS.gold, fontFamily: 'Bebas Neue, sans-serif' }}
+								style={{
+									color: COLORS.gold,
+									fontFamily: 'Bebas Neue, sans-serif',
+								}}
 							>
 								<AnimatedCounter end={847} suffix="" duration={1.8} />
 							</div>
-							<div 
+							<div
 								className="text-sm uppercase tracking-wider font-medium"
-								style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}
+								style={{
+									fontFamily: 'DM Sans, sans-serif',
+									color: COLORS.textMuted,
+								}}
 							>
 								Pro Drivers
 							</div>
@@ -475,7 +546,11 @@ const LandingPage: React.FC = () => {
 			</section>
 
 			{/* 4. HOW IT WORKS */}
-			<section id="how-it-works" className="py-24 border-t z-10 relative" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
+			<section
+				id="how-it-works"
+				className="py-24 border-t z-10 relative"
+				style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}
+			>
 				<div className="max-w-7xl mx-auto px-6">
 					<motion.h2
 						className="text-5xl md:text-6xl font-black mb-4 text-center uppercase"
@@ -483,7 +558,10 @@ const LandingPage: React.FC = () => {
 						whileInView="whileInView"
 						variants={slideInFromSide('left')}
 						viewport={{ once: true, amount: 0.3 }}
-						style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.02em' }}
+						style={{
+							fontFamily: 'Bebas Neue, sans-serif',
+							letterSpacing: '0.02em',
+						}}
 					>
 						How it Works
 					</motion.h2>
@@ -492,7 +570,10 @@ const LandingPage: React.FC = () => {
 						initial={{ opacity: 0 }}
 						whileInView={{ opacity: 1 }}
 						viewport={{ once: true }}
-						style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+						style={{
+							color: COLORS.textMuted,
+							fontFamily: 'DM Sans, sans-serif',
+						}}
 					>
 						From your last session to actionable insights in under 60 seconds
 					</motion.p>
@@ -513,25 +594,28 @@ const LandingPage: React.FC = () => {
 										initial="initial"
 										whileInView="whileInView"
 									>
-										<span 
+										<span
 											className="text-8xl font-black block mb-4"
-											style={{ 
+											style={{
 												color: COLORS.primary,
 												opacity: 0.3,
-												fontFamily: 'Bebas Neue, sans-serif'
+												fontFamily: 'Bebas Neue, sans-serif',
 											}}
 										>
 											0{item.step}
 										</span>
-										<h3 
+										<h3
 											className="text-3xl md:text-4xl font-black mb-6 uppercase"
 											style={{ fontFamily: 'Bebas Neue, sans-serif' }}
 										>
 											{item.title}
 										</h3>
-										<p 
+										<p
 											className="text-lg leading-relaxed"
-											style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.text }}
+											style={{
+												fontFamily: 'DM Sans, sans-serif',
+												color: COLORS.text,
+											}}
 										>
 											{item.desc}
 										</p>
@@ -544,11 +628,11 @@ const LandingPage: React.FC = () => {
 										viewport={{ once: true, amount: 0.5 }}
 										className="carbon-texture rounded-2xl p-1"
 									>
-										<div 
+										<div
 											className="rounded-xl overflow-hidden"
-											style={{ 
+											style={{
 												border: '1px solid rgba(255, 107, 0, 0.2)',
-												boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)'
+												boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
 											}}
 										>
 											<img
@@ -579,7 +663,7 @@ const LandingPage: React.FC = () => {
 												transition={{
 													duration: 2,
 													repeat: Infinity,
-													ease: "easeInOut"
+													ease: 'easeInOut',
 												}}
 											/>
 										</motion.div>
@@ -592,7 +676,10 @@ const LandingPage: React.FC = () => {
 			</section>
 
 			{/* 5. KEY FEATURES */}
-			<section className="py-24 border-t z-10 relative" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
+			<section
+				className="py-24 border-t z-10 relative"
+				style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}
+			>
 				<div className="max-w-7xl mx-auto px-6">
 					<motion.h2
 						className="text-5xl md:text-6xl font-black mb-4 text-center uppercase"
@@ -615,7 +702,10 @@ const LandingPage: React.FC = () => {
 						initial={{ opacity: 0 }}
 						whileInView={{ opacity: 1 }}
 						viewport={{ once: true }}
-						style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+						style={{
+							color: COLORS.textMuted,
+							fontFamily: 'DM Sans, sans-serif',
+						}}
 					>
 						Professional-grade analysis tools used by top iRacing drivers
 					</motion.p>
@@ -634,31 +724,39 @@ const LandingPage: React.FC = () => {
 								variants={fadeInUp}
 								style={{
 									border: '1px solid rgba(255, 255, 255, 0.05)',
-									backgroundColor: 'rgba(26, 26, 26, 0.8)'
+									backgroundColor: 'rgba(26, 26, 26, 0.8)',
 								}}
-								whileHover={{ 
+								whileHover={{
 									y: -8,
-									boxShadow: `0 30px 60px rgba(255, 107, 0, 0.15)`
+									boxShadow: `0 30px 60px rgba(255, 107, 0, 0.15)`,
 								}}
-								onMouseEnter={(e) => e.currentTarget.style.borderColor = `rgba(255, 107, 0, 0.4)`}
-								onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)'}
+								onMouseEnter={(e) =>
+									(e.currentTarget.style.borderColor = `rgba(255, 107, 0, 0.4)`)
+								}
+								onMouseLeave={(e) =>
+									(e.currentTarget.style.borderColor =
+										'rgba(255, 255, 255, 0.05)')
+								}
 							>
-								<div 
+								<div
 									className="w-12 h-1 rounded-full mb-6"
 									style={{ backgroundColor: COLORS.primary }}
 								/>
-								<h3 
+								<h3
 									className="text-2xl font-black mb-4 uppercase tracking-wide"
-									style={{ 
+									style={{
 										color: COLORS.text,
-										fontFamily: 'Bebas Neue, sans-serif'
+										fontFamily: 'Bebas Neue, sans-serif',
 									}}
 								>
 									{feature.title}
 								</h3>
-								<p 
+								<p
 									className="leading-relaxed"
-									style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}
+									style={{
+										fontFamily: 'DM Sans, sans-serif',
+										color: COLORS.textMuted,
+									}}
 								>
 									{feature.desc}
 								</p>
@@ -669,11 +767,11 @@ const LandingPage: React.FC = () => {
 			</section>
 
 			{/* 6. TESTIMONIALS */}
-			<section 
+			<section
 				className="py-24 border-t z-10 relative"
-				style={{ 
+				style={{
 					borderColor: 'rgba(255, 255, 255, 0.05)',
-					backgroundColor: 'rgba(26, 26, 26, 0.3)'
+					backgroundColor: 'rgba(26, 26, 26, 0.3)',
 				}}
 			>
 				<div className="max-w-7xl mx-auto px-6">
@@ -691,7 +789,10 @@ const LandingPage: React.FC = () => {
 						initial={{ opacity: 0 }}
 						whileInView={{ opacity: 1 }}
 						viewport={{ once: true }}
-						style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+						style={{
+							color: COLORS.textMuted,
+							fontFamily: 'DM Sans, sans-serif',
+						}}
 					>
 						Join thousands of drivers who've transformed their performance
 					</motion.p>
@@ -703,7 +804,7 @@ const LandingPage: React.FC = () => {
 								className="rounded-2xl p-8 relative carbon-texture"
 								style={{
 									backgroundColor: 'rgba(26, 26, 26, 0.8)',
-									border: '1px solid rgba(255, 255, 255, 0.05)'
+									border: '1px solid rgba(255, 255, 255, 0.05)',
 								}}
 								initial={{ opacity: 0, y: 30 }}
 								whileInView={{ opacity: 1, y: 0 }}
@@ -712,63 +813,72 @@ const LandingPage: React.FC = () => {
 								whileHover={{ borderColor: 'rgba(255, 107, 0, 0.3)' }}
 							>
 								{/* Improvement Badge */}
-								<div 
+								<div
 									className="absolute -top-4 right-6 text-3xl font-black px-4 py-2 rounded-lg"
-									style={{ 
-										backgroundColor: COLORS.primary, 
+									style={{
+										backgroundColor: COLORS.primary,
 										color: '#000',
-										fontFamily: 'JetBrains Mono, monospace'
+										fontFamily: 'JetBrains Mono, monospace',
 									}}
 								>
 									{testimonial.improvement}
 								</div>
 
 								{/* Quote */}
-								<div 
+								<div
 									className="text-6xl mb-4 leading-none"
 									style={{ color: COLORS.primary, opacity: 0.3 }}
 								>
 									"
 								</div>
-								<p 
+								<p
 									className="mb-8 leading-relaxed"
-									style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.text }}
+									style={{
+										fontFamily: 'DM Sans, sans-serif',
+										color: COLORS.text,
+									}}
 								>
 									{testimonial.quote}
 								</p>
 
 								{/* Author Info */}
-								<div 
+								<div
 									className="border-t pt-6 flex items-center gap-4"
 									style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
 								>
 									{/* Avatar */}
-									<div 
+									<div
 										className="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-lg"
-										style={{ 
+										style={{
 											backgroundColor: 'rgba(255, 107, 0, 0.2)',
 											color: COLORS.primary,
-											fontFamily: 'DM Sans, sans-serif'
+											fontFamily: 'DM Sans, sans-serif',
 										}}
 									>
 										{testimonial.avatar}
 									</div>
 									<div className="flex-1">
-										<p 
+										<p
 											className="font-bold text-lg"
-											style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.text }}
+											style={{
+												fontFamily: 'DM Sans, sans-serif',
+												color: COLORS.text,
+											}}
 										>
 											{testimonial.author}
 										</p>
-										<p 
+										<p
 											className="text-sm"
-											style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+											style={{
+												color: COLORS.textMuted,
+												fontFamily: 'DM Sans, sans-serif',
+											}}
 										>
 											{testimonial.role} • {testimonial.series}
 										</p>
 									</div>
 									{/* iRating Badge */}
-									<div 
+									<div
 										className="irating-badge px-3 py-1.5 rounded-lg text-sm font-mono"
 										title="iRating"
 									>
@@ -782,7 +892,10 @@ const LandingPage: React.FC = () => {
 			</section>
 
 			{/* 7. BEFORE/AFTER COMPARISON */}
-			<section className="py-24 border-t z-10 relative" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
+			<section
+				className="py-24 border-t z-10 relative"
+				style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}
+			>
 				<div className="max-w-4xl mx-auto px-6">
 					<motion.h2
 						className="text-5xl md:text-6xl font-black mb-4 text-center uppercase"
@@ -798,7 +911,10 @@ const LandingPage: React.FC = () => {
 						initial={{ opacity: 0 }}
 						whileInView={{ opacity: 1 }}
 						viewport={{ once: true }}
-						style={{ color: COLORS.textMuted, fontFamily: 'DM Sans, sans-serif' }}
+						style={{
+							color: COLORS.textMuted,
+							fontFamily: 'DM Sans, sans-serif',
+						}}
 					>
 						Real results from real drivers after 30 days with Bolide
 					</motion.p>
@@ -809,32 +925,62 @@ const LandingPage: React.FC = () => {
 							className="rounded-2xl p-8"
 							style={{
 								backgroundColor: 'rgba(220, 38, 38, 0.05)',
-								border: '1px solid rgba(220, 38, 38, 0.2)'
+								border: '1px solid rgba(220, 38, 38, 0.2)',
 							}}
 							initial={{ opacity: 0, x: -50 }}
 							whileInView={{ opacity: 1, x: 0 }}
 							viewport={{ once: true }}
 						>
 							<div className="text-center mb-8">
-								<span 
+								<span
 									className="text-sm uppercase tracking-widest font-bold"
-									style={{ color: COLORS.danger, fontFamily: 'DM Sans, sans-serif' }}
+									style={{
+										color: COLORS.danger,
+										fontFamily: 'DM Sans, sans-serif',
+									}}
 								>
 									Before Bolide
 								</span>
 							</div>
-							<div className="space-y-6 text-center" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
+							<div
+								className="space-y-6 text-center"
+								style={{ fontFamily: 'JetBrains Mono, monospace' }}
+							>
 								<div>
-									<div className="text-4xl font-bold" style={{ color: COLORS.danger }}>1:45.302</div>
-									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>Best Lap Time</div>
+									<div
+										className="text-4xl font-bold"
+										style={{ color: COLORS.danger }}
+									>
+										1:45.302
+									</div>
+									<div
+										className="text-sm mt-1"
+										style={{ color: COLORS.textMuted }}
+									>
+										Best Lap Time
+									</div>
 								</div>
 								<div>
-									<div className="text-2xl" style={{ color: COLORS.textMuted }}>±0.8s</div>
-									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>Consistency Gap</div>
+									<div className="text-2xl" style={{ color: COLORS.textMuted }}>
+										±0.8s
+									</div>
+									<div
+										className="text-sm mt-1"
+										style={{ color: COLORS.textMuted }}
+									>
+										Consistency Gap
+									</div>
 								</div>
 								<div>
-									<div className="text-2xl" style={{ color: COLORS.textMuted }}>3,200</div>
-									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>iRating</div>
+									<div className="text-2xl" style={{ color: COLORS.textMuted }}>
+										3,200
+									</div>
+									<div
+										className="text-sm mt-1"
+										style={{ color: COLORS.textMuted }}
+									>
+										iRating
+									</div>
 								</div>
 							</div>
 						</motion.div>
@@ -844,50 +990,72 @@ const LandingPage: React.FC = () => {
 							className="rounded-2xl p-8 relative overflow-hidden"
 							style={{
 								backgroundColor: 'rgba(255, 107, 0, 0.05)',
-								border: `1px solid rgba(255, 107, 0, 0.3)`
+								border: `1px solid rgba(255, 107, 0, 0.3)`,
 							}}
 							initial={{ opacity: 0, x: 50 }}
 							whileInView={{ opacity: 1, x: 0 }}
 							viewport={{ once: true }}
 						>
-							<div 
+							<div
 								className="absolute top-4 right-4 px-3 py-1.5 rounded-lg text-sm font-bold"
-								style={{ 
+								style={{
 									backgroundColor: COLORS.primary,
 									color: '#000',
-									fontFamily: 'JetBrains Mono, monospace'
+									fontFamily: 'JetBrains Mono, monospace',
 								}}
 							>
 								-2.4s
 							</div>
 							<div className="text-center mb-8">
-								<span 
+								<span
 									className="text-sm uppercase tracking-widest font-bold"
-									style={{ 
+									style={{
 										color: COLORS.primary,
-										fontFamily: 'DM Sans, sans-serif'
+										fontFamily: 'DM Sans, sans-serif',
 									}}
 								>
 									After Bolide
 								</span>
 							</div>
-							<div className="space-y-6 text-center" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
+							<div
+								className="space-y-6 text-center"
+								style={{ fontFamily: 'JetBrains Mono, monospace' }}
+							>
 								<div>
-									<div 
+									<div
 										className="text-4xl font-bold"
 										style={{ color: COLORS.primary }}
 									>
 										1:42.891
 									</div>
-									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>Best Lap Time</div>
+									<div
+										className="text-sm mt-1"
+										style={{ color: COLORS.textMuted }}
+									>
+										Best Lap Time
+									</div>
 								</div>
 								<div>
-									<div className="text-2xl" style={{ color: COLORS.text }}>±0.15s</div>
-									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>Consistency Gap</div>
+									<div className="text-2xl" style={{ color: COLORS.text }}>
+										±0.15s
+									</div>
+									<div
+										className="text-sm mt-1"
+										style={{ color: COLORS.textMuted }}
+									>
+										Consistency Gap
+									</div>
 								</div>
 								<div>
-									<div className="text-2xl" style={{ color: COLORS.gold }}>4,100</div>
-									<div className="text-sm mt-1" style={{ color: COLORS.textMuted }}>iRating (+900)</div>
+									<div className="text-2xl" style={{ color: COLORS.gold }}>
+										4,100
+									</div>
+									<div
+										className="text-sm mt-1"
+										style={{ color: COLORS.textMuted }}
+									>
+										iRating (+900)
+									</div>
 								</div>
 							</div>
 						</motion.div>
@@ -896,11 +1064,12 @@ const LandingPage: React.FC = () => {
 			</section>
 
 			{/* 8. CTA BOTTOM */}
-			<section 
+			<section
 				className="py-32 border-t text-center z-10 relative"
-				style={{ 
+				style={{
 					borderColor: 'rgba(255, 107, 0, 0.2)',
-					background: 'linear-gradient(180deg, transparent 0%, rgba(255, 107, 0, 0.05) 100%)'
+					background:
+						'linear-gradient(180deg, transparent 0%, rgba(255, 107, 0, 0.05) 100%)',
 				}}
 			>
 				<motion.div
@@ -910,16 +1079,19 @@ const LandingPage: React.FC = () => {
 					viewport={{ once: true, amount: 0.5 }}
 					transition={{ duration: 0.7 }}
 				>
-					<h2 
+					<h2
 						className="text-5xl md:text-7xl font-black mb-6 uppercase"
 						style={{ fontFamily: 'Bebas Neue, sans-serif' }}
 					>
 						Ready to Find Your{' '}
 						<span style={{ color: COLORS.primary }}>Missing Seconds</span>?
 					</h2>
-					<p 
+					<p
 						className="text-xl mb-12 max-w-2xl mx-auto"
-						style={{ fontFamily: 'DM Sans, sans-serif', color: COLORS.textMuted }}
+						style={{
+							fontFamily: 'DM Sans, sans-serif',
+							color: COLORS.textMuted,
+						}}
 					>
 						Join 52,000+ sim racers who stopped guessing and started winning.
 						First lap analysis is free — no credit card required.
@@ -927,11 +1099,11 @@ const LandingPage: React.FC = () => {
 					<Link
 						to="/register"
 						className="glow-button inline-block px-16 py-6 rounded-2xl font-bold text-xl transition uppercase tracking-widest relative z-10"
-						style={{ 
+						style={{
 							backgroundColor: COLORS.primary,
 							color: '#000',
 							fontFamily: 'DM Sans, sans-serif',
-							letterSpacing: '0.15em'
+							letterSpacing: '0.15em',
 						}}
 						onMouseEnter={(e) => {
 							e.currentTarget.style.backgroundColor = COLORS.primaryHover
@@ -946,25 +1118,25 @@ const LandingPage: React.FC = () => {
 			</section>
 
 			{/* 9. FOOTER */}
-			<footer 
+			<footer
 				className="py-12 border-t text-center z-10 relative"
-				style={{ 
+				style={{
 					borderColor: 'rgba(255, 255, 255, 0.05)',
-					fontFamily: 'DM Sans, sans-serif'
+					fontFamily: 'DM Sans, sans-serif',
 				}}
 			>
 				<div className="max-w-7xl mx-auto px-6">
 					<div className="flex flex-col md:flex-row justify-between items-center gap-6">
-						<div 
+						<div
 							className="text-2xl font-black tracking-wider"
-							style={{ 
+							style={{
 								color: COLORS.primary,
-								fontFamily: 'Michroma, sans-serif'
+								fontFamily: 'Michroma, sans-serif',
 							}}
 						>
 							BOLIDE
 						</div>
-						<div 
+						<div
 							className="flex items-center gap-2 text-sm"
 							style={{ color: COLORS.textMuted }}
 						>
@@ -973,10 +1145,19 @@ const LandingPage: React.FC = () => {
 							<span className="mx-2">•</span>
 							<span>© 2025 Bolide</span>
 						</div>
-						<div className="flex gap-6 text-sm" style={{ color: COLORS.textMuted }}>
-							<a href="#" className="hover:text-white transition">Privacy</a>
-							<a href="#" className="hover:text-white transition">Terms</a>
-							<a href="#" className="hover:text-white transition">Discord</a>
+						<div
+							className="flex gap-6 text-sm"
+							style={{ color: COLORS.textMuted }}
+						>
+							<a href="#" className="hover:text-white transition">
+								Privacy
+							</a>
+							<a href="#" className="hover:text-white transition">
+								Terms
+							</a>
+							<a href="#" className="hover:text-white transition">
+								Discord
+							</a>
 						</div>
 					</div>
 				</div>
