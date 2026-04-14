@@ -1,5 +1,5 @@
 // src/pages/coach-page.tsx
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import { useAuthStore } from '../store/authStore'
 
@@ -13,9 +13,16 @@ const COLORS = {
 }
 
 const SEGMENT_COLORS = [
-	'#ff6b6b', '#ffa502', '#ffdd59', '#7bed9f',
-	'#70a1ff', '#5352ed', '#a55eea', '#ff6b81',
-	'#2ed573', '#1e90ff',
+	'#ff6b6b',
+	'#ffa502',
+	'#ffdd59',
+	'#7bed9f',
+	'#70a1ff',
+	'#5352ed',
+	'#a55eea',
+	'#ff6b81',
+	'#2ed573',
+	'#1e90ff',
 ]
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -61,7 +68,10 @@ const formatLapTime = (seconds: number) => {
 }
 
 const splitIntoSentences = (text: string): string[] => {
-	const lines = text.trim().split('\n').filter((l) => l.trim().length > 0)
+	const lines = text
+		.trim()
+		.split('\n')
+		.filter((l) => l.trim().length > 0)
 	const sentences: string[] = []
 	for (const line of lines) {
 		const clean = line.replace(/^[-•›]\s*/, '').trim()
@@ -81,10 +91,14 @@ const parseAIText = (rawText: string) => {
 		/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
 		''
 	)
-	const mistakeMatch = clean.match(/Mistake Analysis:([\s\S]*?)(?=Correction:|$)/i)
+	const mistakeMatch = clean.match(
+		/Mistake Analysis:([\s\S]*?)(?=Correction:|$)/i
+	)
 	const correctionMatch = clean.match(/Correction:([\s\S]*)$/i)
 	return {
-		mistakes: mistakeMatch ? splitIntoSentences(mistakeMatch[1]) : splitIntoSentences(clean),
+		mistakes: mistakeMatch
+			? splitIntoSentences(mistakeMatch[1])
+			: splitIntoSentences(clean),
 		corrections: correctionMatch ? splitIntoSentences(correctionMatch[1]) : [],
 	}
 }
@@ -96,7 +110,9 @@ const parseCSV = (text: string): TelemetryPoint[] => {
 	return lines.slice(1).map((line) => {
 		const values = line.split(',')
 		const obj: Record<string, number> = {}
-		headers.forEach((h, i) => { obj[h] = parseFloat(values[i]) || 0 })
+		headers.forEach((h, i) => {
+			obj[h] = parseFloat(values[i]) || 0
+		})
 		return obj as unknown as TelemetryPoint
 	})
 }
@@ -110,7 +126,9 @@ const CoachPage: React.FC = () => {
 	const [step, setStep] = useState<Step>('session')
 	const [selectedSession, setSelectedSession] = useState<Session | null>(null)
 	const [selectedLap, setSelectedLap] = useState<Lap | null>(null)
-	const [expandedSessionId, setExpandedSessionId] = useState<number | null>(null)
+	const [expandedSessionId, setExpandedSessionId] = useState<number | null>(
+		null
+	)
 
 	// Data
 	const [sessions, setSessions] = useState<Session[]>([])
@@ -125,7 +143,9 @@ const CoachPage: React.FC = () => {
 	const [isAiLoading, setIsAiLoading] = useState(false)
 	const [aiError, setAiError] = useState<string | null>(null)
 	const [aiProgress, setAiProgress] = useState(0)
-	const [sparks, setSparks] = useState<Array<{ id: number; angle: number; delay: number; tx: number; ty: number }>>([])
+	const [sparks, setSparks] = useState<
+		Array<{ id: number; angle: number; delay: number; tx: number; ty: number }>
+	>([])
 
 	// Brake disc animation
 	const discColor = useMemo(() => {
@@ -135,10 +155,17 @@ const CoachPage: React.FC = () => {
 		if (aiProgress < 80) return '#cc5500'
 		return '#ff6b00'
 	}, [aiProgress])
-	const glowIntensity = useMemo(() => Math.min(aiProgress / 100, 1), [aiProgress])
+	const glowIntensity = useMemo(
+		() => Math.min(aiProgress / 100, 1),
+		[aiProgress]
+	)
 
 	useEffect(() => {
-		if (!isAiLoading) { setAiProgress(0); setSparks([]); return }
+		if (!isAiLoading) {
+			setAiProgress(0)
+			setSparks([])
+			return
+		}
 		const interval = setInterval(() => {
 			setAiProgress((prev) => (prev >= 95 ? 95 : prev + 1.2))
 		}, 60)
@@ -148,13 +175,16 @@ const CoachPage: React.FC = () => {
 	useEffect(() => {
 		if (!isAiLoading || aiProgress < 30) return
 		const interval = setInterval(() => {
-			setSparks((prev) => [...prev.slice(-12), {
-				id: Date.now(),
-				angle: Math.random() * 360,
-				delay: Math.random() * 0.5,
-				tx: (Math.random() - 0.5) * 100,
-				ty: (Math.random() - 0.5) * 100,
-			}])
+			setSparks((prev) => [
+				...prev.slice(-12),
+				{
+					id: Date.now(),
+					angle: Math.random() * 360,
+					delay: Math.random() * 0.5,
+					tx: (Math.random() - 0.5) * 100,
+					ty: (Math.random() - 0.5) * 100,
+				},
+			])
 		}, 150)
 		return () => clearInterval(interval)
 	}, [isAiLoading, aiProgress])
@@ -209,13 +239,19 @@ const CoachPage: React.FC = () => {
 		if (telemetry.length === 0) return null
 		const lats = telemetry.map((d) => d.Lat)
 		const lons = telemetry.map((d) => d.Lon)
-		const minLat = Math.min(...lats), maxLat = Math.max(...lats)
-		const minLon = Math.min(...lons), maxLon = Math.max(...lons)
+		const minLat = Math.min(...lats),
+			maxLat = Math.max(...lats)
+		const minLon = Math.min(...lons),
+			maxLon = Math.max(...lons)
 		const padding = 10
 		return {
 			points: telemetry.map((d) => ({
-				x: padding + ((d.Lon - minLon) / (maxLon - minLon)) * (100 - 2 * padding),
-				y: padding + ((maxLat - d.Lat) / (maxLat - minLat)) * (100 - 2 * padding),
+				x:
+					padding +
+					((d.Lon - minLon) / (maxLon - minLon)) * (100 - 2 * padding),
+				y:
+					padding +
+					((maxLat - d.Lat) / (maxLat - minLat)) * (100 - 2 * padding),
 				lapPct: d.LapDistPct,
 			})),
 		}
@@ -416,7 +452,10 @@ const CoachPage: React.FC = () => {
 												<h3 className="text-xl font-bold">
 													{session.car?.name || 'Unknown Car'}
 												</h3>
-												<p className="text-sm mt-1" style={{ color: COLORS.textMuted }}>
+												<p
+													className="text-sm mt-1"
+													style={{ color: COLORS.textMuted }}
+												>
 													{session.track?.name || 'Unknown Track'} •{' '}
 													{new Date(session.upload_date).toLocaleDateString()}
 												</p>
@@ -428,7 +467,10 @@ const CoachPage: React.FC = () => {
 												<span
 													className="transform transition-transform inline-block"
 													style={{
-														rotate: expandedSessionId === session.id ? '180deg' : '0deg',
+														rotate:
+															expandedSessionId === session.id
+																? '180deg'
+																: '0deg',
 													}}
 												>
 													▼
@@ -458,7 +500,9 @@ const CoachPage: React.FC = () => {
 																			? 'opacity-30 cursor-not-allowed border-transparent bg-white/5'
 																			: 'border-white/10 bg-white/5 hover:bg-orange-500/10 hover:border-orange-500/40'
 																	}`}
-																	style={{ fontFamily: 'JetBrains Mono, monospace' }}
+																	style={{
+																		fontFamily: 'JetBrains Mono, monospace',
+																	}}
 																>
 																	L{lap.lap_number}{' '}
 																	<span className="ml-2 font-normal opacity-70">
@@ -467,7 +511,9 @@ const CoachPage: React.FC = () => {
 																</button>
 															))
 													) : (
-														<p className="text-sm text-red-400">No laps available.</p>
+														<p className="text-sm text-red-400">
+															No laps available.
+														</p>
 													)}
 												</div>
 											</div>
@@ -500,8 +546,12 @@ const CoachPage: React.FC = () => {
 										{selectedSession?.car?.name || 'Unknown Car'}
 									</span>
 								</h1>
-								<p className="text-xs mt-0.5" style={{ color: COLORS.textMuted }}>
-									{selectedSession?.track?.name} • Lap #{selectedLap?.lap_number} •{' '}
+								<p
+									className="text-xs mt-0.5"
+									style={{ color: COLORS.textMuted }}
+								>
+									{selectedSession?.track?.name} • Lap #
+									{selectedLap?.lap_number} •{' '}
 									{selectedLap ? formatLapTime(selectedLap.lap_time) : ''}
 								</p>
 							</div>
@@ -522,7 +572,10 @@ const CoachPage: React.FC = () => {
 									<div className="carbon-card rounded-2xl p-10 text-center">
 										<div
 											className="animate-pulse text-lg font-bold uppercase tracking-widest"
-											style={{ color: COLORS.primary, fontFamily: 'Bebas Neue' }}
+											style={{
+												color: COLORS.primary,
+												fontFamily: 'Bebas Neue',
+											}}
 										>
 											Loading Telemetry...
 										</div>
@@ -533,11 +586,23 @@ const CoachPage: React.FC = () => {
 									<div className="carbon-card rounded-2xl p-10 text-center animate-fade-up">
 										<div
 											className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-											style={{ backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.2)' }}
+											style={{
+												backgroundColor: 'rgba(255,107,0,0.1)',
+												border: '1px solid rgba(255,107,0,0.2)',
+											}}
 										>
-											<svg className="w-8 h-8" fill="none" stroke="rgb(255,107,0)" viewBox="0 0 24 24">
-												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-													d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+											<svg
+												className="w-8 h-8"
+												fill="none"
+												stroke="rgb(255,107,0)"
+												viewBox="0 0 24 24"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={1.5}
+													d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+												/>
 											</svg>
 										</div>
 										<h3
@@ -547,7 +612,8 @@ const CoachPage: React.FC = () => {
 											Select a Corner
 										</h3>
 										<p className="text-sm" style={{ color: COLORS.textMuted }}>
-											Click a corner on the track map or from the list on the right to start AI coaching.
+											Click a corner on the track map or from the list on the
+											right to start AI coaching.
 										</p>
 									</div>
 								)}
@@ -562,7 +628,10 @@ const CoachPage: React.FC = () => {
 													className="text-2xl font-black uppercase tracking-wider flex items-center gap-3"
 													style={{ fontFamily: 'Bebas Neue' }}
 												>
-													<span className="text-orange-400 animate-pulse">●</span> RACE_COACH_AI
+													<span className="text-orange-400 animate-pulse">
+														●
+													</span>{' '}
+													RACE_COACH_AI
 												</h3>
 												<p className="text-xs text-neutral-400 font-mono mt-1">
 													Target Segment: {selectedCorner}
@@ -595,7 +664,10 @@ const CoachPage: React.FC = () => {
 													{/* Outer Ring */}
 													<div
 														className="absolute inset-0 rounded-full"
-														style={{ border: '4px solid #333', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.8)' }}
+														style={{
+															border: '4px solid #333',
+															boxShadow: 'inset 0 0 20px rgba(0,0,0,0.8)',
+														}}
 													/>
 													{/* Rotating Disc */}
 													<div
@@ -612,7 +684,10 @@ const CoachPage: React.FC = () => {
 														}}
 													>
 														{/* Ventilation holes */}
-														<svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+														<svg
+															className="absolute inset-0 w-full h-full"
+															viewBox="0 0 100 100"
+														>
 															{[...Array(12)].map((_, i) => {
 																const angle = i * 30 * (Math.PI / 180)
 																return (
@@ -633,19 +708,27 @@ const CoachPage: React.FC = () => {
 													<div
 														className="absolute inset-[35%] rounded-full flex items-center justify-center"
 														style={{
-															background: 'linear-gradient(145deg, #2a2a2a, #1a1a1a)',
+															background:
+																'linear-gradient(145deg, #2a2a2a, #1a1a1a)',
 															border: '3px solid #333',
 															boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.8)',
 														}}
 													>
-														<svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+														<svg
+															className="absolute inset-0 w-full h-full"
+															viewBox="0 0 100 100"
+														>
 															{[...Array(5)].map((_, i) => {
 																const angle = (i * 72 - 90) * (Math.PI / 180)
 																return (
-																	<circle key={i}
+																	<circle
+																		key={i}
 																		cx={50 + 25 * Math.cos(angle)}
 																		cy={50 + 25 * Math.sin(angle)}
-																		r="5" fill="#222" stroke="#444" strokeWidth="1"
+																		r="5"
+																		fill="#222"
+																		stroke="#444"
+																		strokeWidth="1"
 																	/>
 																)
 															})}
@@ -654,8 +737,14 @@ const CoachPage: React.FC = () => {
 															className="text-xl font-black relative z-10"
 															style={{
 																fontFamily: 'Orbitron, sans-serif',
-																color: aiProgress > 50 ? COLORS.primary : COLORS.text,
-																textShadow: aiProgress > 50 ? `0 0 10px ${COLORS.primary}` : 'none',
+																color:
+																	aiProgress > 50
+																		? COLORS.primary
+																		: COLORS.text,
+																textShadow:
+																	aiProgress > 50
+																		? `0 0 10px ${COLORS.primary}`
+																		: 'none',
 															}}
 														>
 															{Math.round(aiProgress)}%
@@ -666,25 +755,37 @@ const CoachPage: React.FC = () => {
 														<div
 															key={spark.id}
 															className="spark"
-															style={{
-																top: '50%', left: '50%',
-																'--tx': `${spark.tx}px`,
-																'--ty': `${spark.ty}px`,
-																animationDelay: `${spark.delay}s`,
-																transform: `rotate(${spark.angle}deg) translateX(60px)`,
-															} as React.CSSProperties}
+															style={
+																{
+																	top: '50%',
+																	left: '50%',
+																	'--tx': `${spark.tx}px`,
+																	'--ty': `${spark.ty}px`,
+																	animationDelay: `${spark.delay}s`,
+																	transform: `rotate(${spark.angle}deg) translateX(60px)`,
+																} as React.CSSProperties
+															}
 														/>
 													))}
 													{/* Heat Lines */}
 													{aiProgress > 60 && (
-														<svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
+														<svg
+															className="absolute inset-0 w-full h-full pointer-events-none"
+															viewBox="0 0 100 100"
+														>
 															{[...Array(6)].map((_, i) => {
-																const angle = (i * 60 + aiProgress) * (Math.PI / 180)
+																const angle =
+																	(i * 60 + aiProgress) * (Math.PI / 180)
 																return (
-																	<line key={i}
-																		x1={50 + 35 * Math.cos(angle)} y1={50 + 35 * Math.sin(angle)}
-																		x2={50 + 45 * Math.cos(angle)} y2={50 + 45 * Math.sin(angle)}
-																		stroke={COLORS.primary} strokeWidth="1" opacity={0.5}
+																	<line
+																		key={i}
+																		x1={50 + 35 * Math.cos(angle)}
+																		y1={50 + 35 * Math.sin(angle)}
+																		x2={50 + 45 * Math.cos(angle)}
+																		y2={50 + 45 * Math.sin(angle)}
+																		stroke={COLORS.primary}
+																		strokeWidth="1"
+																		opacity={0.5}
 																		className="heat-wave"
 																		style={{ animationDelay: `${i * 0.15}s` }}
 																	/>
@@ -695,21 +796,40 @@ const CoachPage: React.FC = () => {
 												</div>
 												{/* Progress bar */}
 												<div className="w-56 mb-3">
-													<div className="flex justify-between text-[10px] mb-1" style={{ color: COLORS.textMuted }}>
-														<span>COLD</span><span>OPTIMAL</span><span>HOT</span>
+													<div
+														className="flex justify-between text-[10px] mb-1"
+														style={{ color: COLORS.textMuted }}
+													>
+														<span>COLD</span>
+														<span>OPTIMAL</span>
+														<span>HOT</span>
 													</div>
-													<div className="h-2 rounded-full overflow-hidden" style={{ background: 'linear-gradient(90deg, #334, #663300, #994400, #cc5500, #ff6b00)', opacity: 0.3 }}>
+													<div
+														className="h-2 rounded-full overflow-hidden"
+														style={{
+															background:
+																'linear-gradient(90deg, #334, #663300, #994400, #cc5500, #ff6b00)',
+															opacity: 0.3,
+														}}
+													>
 														<div
 															className="h-full rounded-full transition-all duration-100 ease-out"
 															style={{
 																width: `${aiProgress}%`,
-																background: 'linear-gradient(90deg, #444 0%, #663300 25%, #994400 50%, #cc5500 75%, #ff6b00 100%)',
-																boxShadow: aiProgress > 50 ? `0 0 8px ${discColor}` : 'none',
+																background:
+																	'linear-gradient(90deg, #444 0%, #663300 25%, #994400 50%, #cc5500 75%, #ff6b00 100%)',
+																boxShadow:
+																	aiProgress > 50
+																		? `0 0 8px ${discColor}`
+																		: 'none',
 															}}
 														/>
 													</div>
 												</div>
-												<p className="font-mono text-xs uppercase tracking-widest" style={{ color: COLORS.primary }}>
+												<p
+													className="font-mono text-xs uppercase tracking-widest"
+													style={{ color: COLORS.primary }}
+												>
 													Processing telemetry stream...
 												</p>
 											</div>
@@ -719,8 +839,12 @@ const CoachPage: React.FC = () => {
 										{aiError && !isAiLoading && (
 											<div className="p-6">
 												<div className="rounded-xl p-4 bg-red-500/10 border border-red-500/30">
-													<p className="font-bold text-red-400 mb-1 uppercase text-xs tracking-widest">Analysis Failed</p>
-													<p className="text-red-300/80 font-mono text-xs leading-relaxed">{aiError}</p>
+													<p className="font-bold text-red-400 mb-1 uppercase text-xs tracking-widest">
+														Analysis Failed
+													</p>
+													<p className="text-red-300/80 font-mono text-xs leading-relaxed">
+														{aiError}
+													</p>
 													<button
 														onClick={() => setAiError(null)}
 														className="mt-3 text-xs text-red-400 hover:text-red-300 underline"
@@ -743,17 +867,53 @@ const CoachPage: React.FC = () => {
 														<table className="w-full text-left text-xs font-mono">
 															<thead>
 																<tr className="bg-white/5 text-neutral-400">
-																	<th className="py-3 px-4 font-normal">Metric</th>
-																	<th className="py-3 px-4 font-normal text-right">You</th>
-																	<th className="py-3 px-4 font-normal text-right">Pro</th>
-																	<th className="py-3 px-4 font-normal text-right">Delta</th>
+																	<th className="py-3 px-4 font-normal">
+																		Metric
+																	</th>
+																	<th className="py-3 px-4 font-normal text-right">
+																		You
+																	</th>
+																	<th className="py-3 px-4 font-normal text-right">
+																		Pro
+																	</th>
+																	<th className="py-3 px-4 font-normal text-right">
+																		Delta
+																	</th>
 																</tr>
 															</thead>
 															<tbody className="divide-y divide-white/5">
-																<ComparisonRow label="Entry Spd" val1={currentAiData.drv_metrics?.entry_speed} val2={currentAiData.ref_metrics?.entry_speed} unit="km/h" inverse={false} />
-																<ComparisonRow label="Min Spd" val1={currentAiData.drv_metrics?.min_speed} val2={currentAiData.ref_metrics?.min_speed} unit="km/h" inverse={false} />
-																<ComparisonRow label="Apex Throt" val1={currentAiData.drv_metrics?.apex_throttle} val2={currentAiData.ref_metrics?.apex_throttle} unit="%" inverse={false} />
-																<ComparisonRow label="Exit Spd" val1={currentAiData.drv_metrics?.exit_speed} val2={currentAiData.ref_metrics?.exit_speed} unit="km/h" inverse={false} />
+																<ComparisonRow
+																	label="Entry Spd"
+																	val1={currentAiData.drv_metrics?.entry_speed}
+																	val2={currentAiData.ref_metrics?.entry_speed}
+																	unit="km/h"
+																	inverse={false}
+																/>
+																<ComparisonRow
+																	label="Min Spd"
+																	val1={currentAiData.drv_metrics?.min_speed}
+																	val2={currentAiData.ref_metrics?.min_speed}
+																	unit="km/h"
+																	inverse={false}
+																/>
+																<ComparisonRow
+																	label="Apex Throt"
+																	val1={
+																		currentAiData.drv_metrics?.apex_throttle
+																	}
+																	val2={
+																		currentAiData.ref_metrics?.apex_throttle
+																	}
+																	unit="%"
+																	inverse={false}
+																/>
+																<ComparisonRow
+																	label="Exit Spd"
+																	val1={currentAiData.drv_metrics?.exit_speed}
+																	val2={currentAiData.ref_metrics?.exit_speed}
+																	unit="km/h"
+																	inverse={false}
+																/>
 															</tbody>
 														</table>
 													</div>
@@ -764,20 +924,27 @@ const CoachPage: React.FC = () => {
 													{currentAiData.parsedFeedback.mistakes.length > 0 && (
 														<div className="ai-card-mistake rounded-xl p-5">
 															<p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-																<span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Identified Mistakes
+																<span className="w-1.5 h-1.5 rounded-full bg-rose-500" />{' '}
+																Identified Mistakes
 															</p>
 															<p className="text-sm text-neutral-300 font-sans leading-relaxed">
-																{currentAiData.parsedFeedback.mistakes.join(' ')}
+																{currentAiData.parsedFeedback.mistakes.join(
+																	' '
+																)}
 															</p>
 														</div>
 													)}
-													{currentAiData.parsedFeedback.corrections.length > 0 && (
+													{currentAiData.parsedFeedback.corrections.length >
+														0 && (
 														<div className="ai-card-fix rounded-xl p-5">
 															<p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-																<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Actionable Corrections
+																<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />{' '}
+																Actionable Corrections
 															</p>
 															<p className="text-sm text-white font-sans font-medium leading-relaxed">
-																{currentAiData.parsedFeedback.corrections.join(' ')}
+																{currentAiData.parsedFeedback.corrections.join(
+																	' '
+																)}
 															</p>
 														</div>
 													)}
@@ -790,7 +957,10 @@ const CoachPage: React.FC = () => {
 											<div className="p-8 text-center">
 												<p className="text-sm font-mono text-neutral-500">
 													Press "Initialize Analysis" to get AI feedback on{' '}
-													<span className="text-orange-400">{selectedCorner}</span>.
+													<span className="text-orange-400">
+														{selectedCorner}
+													</span>
+													.
 												</p>
 											</div>
 										)}
@@ -807,16 +977,24 @@ const CoachPage: React.FC = () => {
 									</p>
 									{telemetryLoading && (
 										<div className="flex items-center justify-center h-full">
-											<div className="text-[10px] uppercase tracking-widest animate-pulse" style={{ color: COLORS.primary }}>
+											<div
+												className="text-[10px] uppercase tracking-widest animate-pulse"
+												style={{ color: COLORS.primary }}
+											>
 												Loading...
 											</div>
 										</div>
 									)}
 									{trackMapData && !telemetryLoading && (
-										<svg viewBox="0 0 100 100" className="w-full h-full relative z-0">
+										<svg
+											viewBox="0 0 100 100"
+											className="w-full h-full relative z-0"
+										>
 											{/* Base track outline */}
 											<path
-												d={trackMapData.points.map((p, j) => `${j === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')}
+												d={trackMapData.points
+													.map((p, j) => `${j === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
+													.join(' ')}
 												fill="none"
 												stroke="rgba(255,255,255,0.15)"
 												strokeWidth="2.5"
@@ -826,7 +1004,9 @@ const CoachPage: React.FC = () => {
 											{/* Corner segments */}
 											{corners.map((corner, i) => {
 												const pts = trackMapData.points.filter(
-													(p) => p.lapPct >= corner.entry_pct && p.lapPct <= corner.exit_pct
+													(p) =>
+														p.lapPct >= corner.entry_pct &&
+														p.lapPct <= corner.exit_pct
 												)
 												if (pts.length < 2) return null
 
@@ -834,9 +1014,15 @@ const CoachPage: React.FC = () => {
 												let cur: string[] = []
 												for (let j = 0; j < pts.length; j++) {
 													const c = pts[j]
-													if (j === 0) { cur.push(`M ${c.x} ${c.y}`); continue }
+													if (j === 0) {
+														cur.push(`M ${c.x} ${c.y}`)
+														continue
+													}
 													const prev = pts[j - 1]
-													const dist = Math.sqrt(Math.pow(c.x - prev.x, 2) + Math.pow(c.y - prev.y, 2))
+													const dist = Math.sqrt(
+														Math.pow(c.x - prev.x, 2) +
+															Math.pow(c.y - prev.y, 2)
+													)
 													if (dist > 8) {
 														if (cur.length > 1) pathParts.push(cur.join(' '))
 														cur = [`M ${c.x} ${c.y}`]
@@ -850,7 +1036,6 @@ const CoachPage: React.FC = () => {
 
 												const isSelected = selectedCorner === corner.name
 												const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length]
-												const isCached = !!aiCache[corner.name]
 
 												return (
 													<path
@@ -861,11 +1046,21 @@ const CoachPage: React.FC = () => {
 														strokeWidth={isSelected ? 5 : 3}
 														strokeLinecap="round"
 														style={{
-															opacity: selectedCorner === null ? 0.8 : isSelected ? 1 : 0.2,
-															filter: isSelected ? `drop-shadow(0 0 4px ${color})` : 'none',
+															opacity:
+																selectedCorner === null
+																	? 0.8
+																	: isSelected
+																		? 1
+																		: 0.2,
+															filter: isSelected
+																? `drop-shadow(0 0 4px ${color})`
+																: 'none',
 															cursor: 'pointer',
 														}}
-														onClick={() => { setSelectedCorner(corner.name); setAiError(null) }}
+														onClick={() => {
+															setSelectedCorner(corner.name)
+															setAiError(null)
+														}}
 													/>
 												)
 											})}
@@ -874,7 +1069,9 @@ const CoachPage: React.FC = () => {
 									{!trackMapData && !telemetryLoading && (
 										<div className="flex items-center justify-center h-full">
 											<p className="text-[10px] text-neutral-600 uppercase tracking-widest text-center">
-												Map loads after<br />telemetry
+												Map loads after
+												<br />
+												telemetry
 											</p>
 										</div>
 									)}
@@ -893,22 +1090,39 @@ const CoachPage: React.FC = () => {
 										return (
 											<button
 												key={c.name}
-												onClick={() => { setSelectedCorner(c.name); setAiError(null) }}
+												onClick={() => {
+													setSelectedCorner(c.name)
+													setAiError(null)
+												}}
 												className={`w-full text-left p-4 rounded-xl text-xs font-bold transition-all border flex justify-between items-center group
                           ${isSelected ? 'bg-white/10 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
 												style={{
-													borderTopColor: isSelected ? color : 'rgba(255,255,255,0.05)',
-													borderRightColor: isSelected ? color : 'rgba(255,255,255,0.05)',
-													borderBottomColor: isSelected ? color : 'rgba(255,255,255,0.05)',
+													borderTopColor: isSelected
+														? color
+														: 'rgba(255,255,255,0.05)',
+													borderRightColor: isSelected
+														? color
+														: 'rgba(255,255,255,0.05)',
+													borderBottomColor: isSelected
+														? color
+														: 'rgba(255,255,255,0.05)',
 													borderLeftColor: color,
 													borderLeftWidth: '4px',
 												}}
 											>
 												<div>
-													<span className={`mr-2 ${isSelected ? 'text-white' : 'opacity-40'}`}>
+													<span
+														className={`mr-2 ${isSelected ? 'text-white' : 'opacity-40'}`}
+													>
 														{i + 1}
 													</span>
-													<span className={isSelected ? 'text-white' : 'text-neutral-400 group-hover:text-white'}>
+													<span
+														className={
+															isSelected
+																? 'text-white'
+																: 'text-neutral-400 group-hover:text-white'
+														}
+													>
 														{c.name}
 													</span>
 												</div>
@@ -951,11 +1165,18 @@ const ComparisonRow: React.FC<{
 
 	return (
 		<tr className="group hover:bg-white/5 transition-colors">
-			<td className="py-3 px-4 text-neutral-400 group-hover:text-white transition-colors">{label}</td>
-			<td className="py-3 px-4 text-right text-white">{val1?.toFixed(1)} {unit}</td>
-			<td className="py-3 px-4 text-right text-neutral-500">{val2?.toFixed(1)} {unit}</td>
+			<td className="py-3 px-4 text-neutral-400 group-hover:text-white transition-colors">
+				{label}
+			</td>
+			<td className="py-3 px-4 text-right text-white">
+				{val1?.toFixed(1)} {unit}
+			</td>
+			<td className="py-3 px-4 text-right text-neutral-500">
+				{val2?.toFixed(1)} {unit}
+			</td>
 			<td className={`py-3 px-4 text-right font-bold ${color}`}>
-				{delta > 0 ? '+' : ''}{delta.toFixed(1)}
+				{delta > 0 ? '+' : ''}
+				{delta.toFixed(1)}
 			</td>
 		</tr>
 	)
